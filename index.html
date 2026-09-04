@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>歩いて育てるアバター Pro</title>
+  <title>歩いて育てる幼少期アバター</title>
 
   <!-- PWA設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,6 +17,7 @@
     .card { background: #1e293b; border-radius: 20px; padding: 18px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
     h2 { font-size: 14px; margin-bottom: 10px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
     
+    /* アバターカード */
     .avatar-card { text-align: center; background: radial-gradient(circle at 50% 0%, #1e293b, #0f172a); border: 2px solid #38bdf8; position: relative; padding-top: 30px; }
     .avatar-box { width: 150px; height: 150px; border-radius: 50%; background: #000; margin: 0 auto 12px; overflow: hidden; border: 4px solid #38bdf8; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
     #avatarImg { width: 100%; height: 100%; object-fit: cover; }
@@ -25,9 +26,11 @@
     .char-name { font-size: 22px; font-weight: bold; margin-top: 10px; color: #fff; }
     .next-goal { font-size: 11px; color: #fbbf24; margin-top: 8px; font-weight: bold; }
 
+    /* EXPゲージ */
     .exp-bar-bg { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; border: 1px solid #334155; margin-top: 10px; }
     .exp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.5s ease; }
 
+    /* 歩数計 */
     .pedometer-card { text-align: center; background: #1e1b4b; border: 1px solid #6366f1; }
     .step-count { font-size: 42px; font-weight: 900; color: #818cf8; line-height: 1; margin: 10px 0; }
 
@@ -49,6 +52,7 @@
 
     #previewImg { width: 100%; max-height: 200px; object-fit: contain; border-radius: 12px; margin-bottom: 10px; background: #000; }
     .reset-btn { background: transparent; color: #64748b; border: none; font-size: 10px; cursor: pointer; }
+    .status-small { font-size: 10px; color: #475569; text-align: center; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -56,14 +60,15 @@
 <div class="app-container">
   <div class="card" style="padding: 10px 18px;">
     <input type="password" id="apiKey" placeholder="Gemini API Key" style="margin-bottom:0; font-size:10px; padding:8px;" />
+    <div id="statusMsg" class="status-small">センサー未接続</div>
   </div>
 
   <div class="card" id="setupCard">
-    <h2 style="margin-bottom:15px;">📸 あなたの子供時代を生成</h2>
+    <h2 style="margin-bottom:15px;">📸 写真からアバターを生成</h2>
     <div id="previewArea" style="display:none;"><img id="previewImg" /></div>
     <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhoto(event)" />
     <button class="main-btn" onclick="document.getElementById('photoInput').click()">📸 写真を選択・撮影</button>
-    <button id="analyzeBtn" class="main-btn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ この顔で誕生させる</button>
+    <button id="analyzeBtn" class="main-btn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ この顔で誕生させる (センサー許可)</button>
   </div>
 
   <div class="card avatar-card">
@@ -77,8 +82,9 @@
   </div>
 
   <div class="card pedometer-card">
+    <h2>👟 今日の歩数</h2>
     <div class="step-count" id="stepDisplay">0 <span style="font-size:16px;">歩</span></div>
-    <button id="stepReportBtn" class="main-btn" onclick="reportStepsToAvatar()" style="background:#6366f1; box-shadow:0 4px 0 #4f46e5;" disabled>歩数を報告して成長させる</button>
+    <button id="stepReportBtn" class="main-btn" onclick="reportStepsToAvatar()" style="background:#6366f1; box-shadow:0 4px 0 #4f46e5;" disabled>歩数を報告してEXP獲得！</button>
   </div>
 
   <div class="card">
@@ -91,7 +97,7 @@
   </div>
 
   <div class="card">
-    <h2 style="font-size:12px;">📜 思い出ログ <button class="reset-btn" onclick="resetData()">リセット</button></h2>
+    <h2 style="font-size:12px;">📜 成長の記録 <button class="reset-btn" onclick="resetData()">リセット</button></h2>
     <div class="history-list" id="historyList"></div>
   </div>
 </div>
@@ -112,30 +118,38 @@
   let isStepThrottled = false;
 
   window.onload = () => {
-    document.getElementById('apiKey').value = localStorage.getItem('avatar_step_v3_key') || '';
-    document.getElementById('apiKey').addEventListener('change', (e) => localStorage.setItem('avatar_step_v3_key', e.target.value.trim()));
+    document.getElementById('apiKey').value = localStorage.getItem('avatar_step_v4_key') || '';
+    document.getElementById('apiKey').addEventListener('change', (e) => localStorage.setItem('avatar_step_v4_key', e.target.value.trim()));
     initSpeech();
     loadData();
   };
 
-  function initPedometer() {
+  // 👟 歩数センサーの初期化 (iOSの許可ダイアログ対応)
+  async function initPedometer() {
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-      DeviceMotionEvent.requestPermission().then(res => {
-        if (res === 'granted') window.addEventListener('devicemotion', handleMotion);
-      });
-    } else { window.addEventListener('devicemotion', handleMotion); }
+      try {
+        const res = await DeviceMotionEvent.requestPermission();
+        if (res === 'granted') {
+          window.addEventListener('devicemotion', handleMotion);
+          document.getElementById('statusMsg').textContent = "センサー接続済み";
+        }
+      } catch (e) { console.error(e); }
+    } else {
+      window.addEventListener('devicemotion', handleMotion);
+      document.getElementById('statusMsg').textContent = "センサー稼働中";
+    }
   }
 
   function handleMotion(event) {
     const accel = event.accelerationIncludingGravity;
     if (!accel) return;
     const delta = Math.abs(accel.x - lastAccel.x) + Math.abs(accel.y - lastAccel.y) + Math.abs(accel.z - lastAccel.z);
-    if (delta > 12 && !isStepThrottled) {
+    if (delta > 13 && !isStepThrottled) {
       stepCount++;
       document.getElementById('stepDisplay').innerHTML = `${stepCount} <span style="font-size:16px;">歩</span>`;
       updateNextGoal();
       isStepThrottled = true;
-      setTimeout(() => { isStepThrottled = false; }, 300);
+      setTimeout(() => { isStepThrottled = false; }, 350);
     }
     lastAccel = { x: accel.x, y: accel.y, z: accel.z };
   }
@@ -156,7 +170,7 @@
   function stopRecording() { isRecording = false; document.getElementById('micBtn').innerText = '🎙️'; document.getElementById('micBtn').classList.remove('recording'); }
 
   function loadData() {
-    const saved = localStorage.getItem('avatar_state_step_v3');
+    const saved = localStorage.getItem('avatar_state_step_v4');
     if (!saved) return;
     const data = JSON.parse(saved);
     level = data.level || 1; exp = data.exp || 0; avatarTraits = data.traits || ''; rawPromptBase = data.rawPromptBase || ''; logs = data.logs || [];
@@ -169,12 +183,11 @@
   }
 
   function saveData(imgUrl) {
-    localStorage.setItem('avatar_state_step_v3', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
+    localStorage.setItem('avatar_state_step_v4', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
   }
 
-  function resetData() { if (confirm("リセットしますか？")) { localStorage.removeItem('avatar_state_step_v3'); location.reload(); } }
+  function resetData() { if (confirm("リセットしますか？")) { localStorage.removeItem('avatar_state_step_v4'); location.reload(); } }
 
-  // 🖼️ 写真の取り込みと比率修正リサイズ
   function handlePhoto(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -183,25 +196,12 @@
       const img = new Image();
       img.onload = function() {
         const canvas = document.createElement('canvas');
-        let w = img.width;
-        let h = img.height;
-        const max = 800;
-
-        // 比率を保ったままサイズ計算
-        if (w > h) {
-          if (w > max) { h *= max / w; w = max; }
-        } else {
-          if (h > max) { w *= max / h; h = max; }
-        }
-
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        
-        const resizedData = canvas.toDataURL('image/jpeg', 0.8);
-        base64Image = resizedData.split(',')[1];
-        document.getElementById('previewImg').src = resizedData;
+        let w = img.width, h = img.height, max = 800;
+        if (w > h) { if (w > max) { h *= max / w; w = max; } } else { if (h > max) { w *= max / h; h = max; } }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+        document.getElementById('previewImg').src = canvas.toDataURL('image/jpeg');
         document.getElementById('previewArea').style.display = 'block';
         document.getElementById('analyzeBtn').style.display = 'block';
       };
@@ -211,7 +211,7 @@
   }
 
   async function startPhotoAnalysis() {
-    initPedometer();
+    await initPedometer(); // ユーザー操作に合わせてセンサーを起動
     const apiKey = document.getElementById('apiKey').value.trim();
     if (!apiKey) return alert("APIキーを入力してください");
     const analyzeBtn = document.getElementById('analyzeBtn');
@@ -222,7 +222,8 @@
       const mData = await mRes.json();
       const models = mData.models.filter(m => m.supportedGenerationMethods.includes("generateContent")).sort((a,b)=>b.name.localeCompare(a.name));
 
-      const prompt = `この画像の本人の「面影（髪型、メガネ、目の形、雰囲気）」を100%維持した幼少期アバターを作成します。JSON形式のみで返してください。
+      const prompt = `この画像の本人の「面影」を完全に維持した幼少期アバターを作成します。
+性別、髪型、メガネ、目の形を詳細に分析してください。JSON形式のみで返してください。
 {"name":"ニックネーム","traits":"特徴(1文)","rawPromptBase":"Highly detailed English visual description of facial traits to RETAIN LIKENESS. Mention specific hair, eyes, and skin tone."}`;
 
       for (const m of models) {
@@ -251,11 +252,10 @@
 
   async function updateAvatarVisual() {
     let age = level < 3 ? "tiny toddler" : (level < 6 ? "cute primary student" : "mature young adult");
-    const fullPrompt = `${age} anime version of person with ${rawPromptBase}, RETAIN IDENTITY, looking at viewer, high quality, soft lighting`;
+    const fullPrompt = `${age} version of person with ${rawPromptBase}, anime style, RETAIN IDENTITY, looking at viewer, high quality`;
     const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=400&height=400&nologo=true&seed=${Math.floor(Math.random()*1000)}`;
-    const avatarEl = document.getElementById('avatarImg');
-    avatarEl.src = imgUrl; 
-    avatarEl.onload = () => saveData(imgUrl);
+    document.getElementById('avatarImg').src = imgUrl; 
+    document.getElementById('avatarImg').onload = () => saveData(imgUrl);
   }
 
   function updateNextGoal() {
@@ -282,7 +282,7 @@
     if (stepCount === 0) return alert("まだ歩いていないよ！");
     const steps = stepCount; stepCount = 0;
     document.getElementById('stepDisplay').innerHTML = `0 <span style="font-size:16px;">歩</span>`;
-    const gainedExp = Math.min(85, Math.floor(steps / 5) + 15);
+    const gainedExp = Math.min(85, Math.floor(steps / 5) + 20); // 歩数に応じてEXP
     await processAvatarMessage(`今日はお散歩して ${steps} 歩も歩いたよ！褒めて！`, gainedExp);
   }
 
@@ -290,29 +290,30 @@
     const text = document.getElementById('userInput').value.trim();
     if (!text) return;
     document.getElementById('userInput').value = "";
-    await processAvatarMessage(text, 25);
+    await processAvatarMessage(text, 35);
   }
 
   async function processAvatarMessage(text, gainedExp) {
     const chatBox = document.getElementById('chatBox'), sendBtn = document.getElementById('sendBtn');
     sendBtn.disabled = true; chatBox.style.display = "block"; chatBox.textContent = "AI思考中...";
 
-    const role = level < 3 ? "幼い子供の口調（〜だよぉ！等）" : (level < 6 ? "成長した少年・少女の口調" : "大人の頼もしいパートナーの口調");
-    const prompt = `あなたはユーザーの「${role}」になりきり、セリフのみを出力してください。解説・思考プロセス・英訳は【一切禁止】です。二文以内で短く返答してください。報告:「${text}」`;
+    const role = level < 3 ? "幼い子供の口調（〜だよぉ！等）" : (level < 6 ? "成長した少年・少女の口調" : "大人のパートナーの口調");
+    const prompt = `あなたは「${role}」になりきり、セリフのみを出力してください。解説・思考プロセス・英訳・AIであることの言及、営業トークは【一切禁止】です。二文以内で短く返答してください。報告:「${text}」`;
 
     try {
+      const apiKey = document.getElementById('apiKey').value.trim();
       const model = localStorage.getItem('last_avatar_model') || 'models/gemini-1.5-flash';
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${document.getElementById('apiKey').value.trim()}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
       });
       const data = await res.json();
       let reply = data.candidates[0].content.parts[0].text;
-      reply = reply.split('\n').filter(l => l.trim() !== '').pop();
+      reply = reply.split('\n').filter(l => l.trim() !== '').pop(); // セリフのみを抽出
       currentReply = reply.trim();
       chatBox.innerHTML = `${currentReply}<br><button class="voice-btn" onclick="speak()">🔊 聴く</button>`;
-      logs.unshift({ user: text, reply: currentReply }); if (logs.length > 15) logs.pop();
+      logs.unshift({ user: text, reply: currentReply }); if (logs.length > 20) logs.pop();
       renderLogs(); addExp(gainedExp);
     } catch (e) { chatBox.textContent = "エラーが発生しました。"; }
     finally { sendBtn.disabled = false; }
