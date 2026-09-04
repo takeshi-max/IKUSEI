@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>幼少期アバター育成プロトタイプ</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; display: flex; justify-content: center; }
+    .app-container { max-width: 420px; width: 100%; display: flex; flex-direction: column; gap: 16px; }
+    .card { background: #1e293b; border-radius: 16px; padding: 16px; border: 1px solid #334155; }
+    h2 { font-size: 16px; margin-bottom: 12px; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    
+    /* アバター表示エリア */
+    .avatar-card { text-align: center; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+    .avatar-box { width: 120px; height: 120px; border-radius: 50%; background: #334155; margin: 0 auto 12px; overflow: hidden; border: 3px solid #38bdf8; display: flex; align-items: center; justify-content: center; position: relative; }
+    .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+    .level-badge { position: absolute; bottom: 0; background: #38bdf8; color: #0f172a; font-weight: bold; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+    .char-name { font-size: 18px; font-weight: bold; }
+    .char-desc { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    
+    /* 入力フォーム */
+    input[type="password"], input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 13px; margin-bottom: 8px; }
+    button { width: 100%; padding: 10px; background: #38bdf8; color: #0f172a; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 4px; }
+    button:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+    
+    /* チャット表示エリア */
+    .chat-box { background: #0f172a; border-radius: 12px; padding: 12px; min-height: 80px; font-size: 14px; line-height: 1.5; color: #e2e8f0; border: 1px solid #334155; margin-top: 8px; }
+    .loading { text-align: center; color: #38bdf8; font-size: 12px; display: none; margin-top: 8px; }
+    
+    /* カメラ・プレビュー */
+    #previewImg { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; display: none; }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="card">
+    <h2>🔑 1. APIキー入力</h2>
+    <input type="password" id="apiKey" placeholder="Gemini API Key を入力" />
+  </div>
+
+  <div class="card">
+    <h2>📸 2. 写真から幼少期アバター分析</h2>
+    <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhoto(event)" />
+    <button onclick="document.getElementById('photoInput').click()">画像をアップロード</button>
+    <img id="previewImg" alt="プレビュー" />
+    <button id="analyzeBtn" onclick="analyzePhoto()" disabled>アバター作成＆分析開始</button>
+  </div>
+
+  <div class="card avatar-card">
+    <div class="avatar-box">
+      <img id="avatarImg" src="https://via.placeholder.com/120/334155/94a3b8?text=AVATAR" alt="アバター" />
+      <div class="level-badge" id="levelBadge">Lv.1 (幼少期)</div>
+    </div>
+    <div class="char-name" id="charName">あなたのアバター</div>
+    <div class="char-desc" id="charDesc">写真を読み込むと、特徴に合わせた幼少期設定が生成されます。</div>
+  </div>
+
+  <div class="card">
+    <h2>💬 3. 今日の頑張りを伝える</h2>
+    <input type="text" id="userInput" placeholder="例: 朝7時に起きた、書類を1枚提出した" />
+    <button id="sendBtn" onclick="praiseUser()" disabled>アバターに伝える (EXP +10)</button>
+    <div id="loading" class="loading">✨ AIが応答を考えています...</div>
+    <div class="chat-box" id="chatBox">アバターがここにメッセージを返してくれます。</div>
+  </div>
+</div>
+
+<script>
+  let base64Image = "";
+  let avatarTraits = "";
+  let level = 1;
+
+  // LocalStorageからAPIキー読み込み
+  const apiKeyInput = document.getElementById('apiKey');
+  apiKeyInput.value = localStorage.getItem('morning_dashboard_key') || '';
+  apiKeyInput.addEventListener('change', () => localStorage.setItem('morning_dashboard_key', apiKeyInput.value.trim()));
+
+  // 写真のハンドリング
+  function handlePhoto(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      base64Image = e.target.result.split(',')[1];
+      const preview = document.getElementById('previewImg');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      document.getElementById('analyzeBtn').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 1. 画像から特徴抽出＆幼少期アバター生成
+  async function analyzePhoto() {
+    const apiKey = apiKeyInput.value.trim();
+    if (!apiKey) return alert("APIキーを入力してください");
+
+    const loading = document.getElementById('loading');
+    loading.style.display = 'block';
+
+    const prompt = `この画像の人間の顔の特徴（髪型、メガネの有無、雰囲気など）を分析し、以下のJSON形式のみで出力してください。
+{
+  "name": "画像の特徴を表す可愛らしい幼少期ニックネーム（例: めがねのちびちゃん）",
+  "traits": "画像から読み取れる見た目の特徴（1文）",
+  "childPrompt": "この人物をアニメ風の可愛い子供（幼少期）として描くためのイラスト用プロンプト（英語）"
+}`;
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+            ]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      let rawText = data.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const result = JSON.parse(rawText);
+
+      avatarTraits = result.traits;
+      document.getElementById('charName').innerText = result.name;
+      document.getElementById('charDesc').innerText = `特徴: ${result.traits}`;
+      document.getElementById('sendBtn').disabled = false;
+      
+      // アバター画像にアップロード画像を表示（実際のプロダクションでは画像生成APIで幼少期化）
+      document.getElementById('avatarImg').src = `data:image/jpeg;base64,${base64Image}`;
+
+      alert("アバターの生成・分析が完了しました！下から話しかけてみてください。");
+    } catch (e) {
+      alert("分析に失敗しました。画像やAPIキーを確認してください。");
+      console.error(e);
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  // 2. 褒め対話処理
+  async function praiseUser() {
+    const apiKey = apiKeyInput.value.trim();
+    const text = document.getElementById('userInput').value.trim();
+    if (!text) return alert("頑張ったことを入力してください");
+
+    const loading = document.getElementById('loading');
+    loading.style.display = 'block';
+
+    // 成長段階に応じたキャラクター設定
+    let roleSetting = "";
+    if (level < 3) {
+      roleSetting = "あなたはユーザーの写真をベースにした『幼少期の子供アバター』です。無邪気で天真爛漫な口調（『〜だよ！すごーい！』など）で、ユーザーの些細な行動を無条件で無邪気に褒めちぎってください。";
+    } else {
+      roleSetting = "あなたは成長して『少し背伸びした少年・少女アバター』になりました。少しお兄さん/お姉さんぶった口調で、ユーザーの努力を対等な目線で褒めてください。";
+    }
+
+    const prompt = `${roleSetting}
+見た目の特徴: ${avatarTraits}
+
+ユーザーの今日の頑張り: 「${text}」
+
+上記に対して、ユーザーが元気になるような2〜3文の温かい褒め言葉を返してください。`;
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+
+      const data = await response.json();
+      const reply = data.candidates[0].content.parts[0].text;
+
+      document.getElementById('chatBox').innerText = reply;
+      document.getElementById('userInput').value = "";
+
+      // レベルアップ処理（試運転用に1回対話ごとにレベル上がる設定）
+      level++;
+      document.getElementById('levelBadge').innerText = `Lv.${level} (${level < 3 ? '幼少期' : '少年・少女期'})`;
+
+    } catch (e) {
+      alert("送信に失敗しました");
+      console.error(e);
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+</script>
+
+</body>
+</html>
