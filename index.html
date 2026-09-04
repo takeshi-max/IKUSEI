@@ -2,20 +2,20 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>幼少期アバター育成 Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>幼少期アバター育成 Pro Max</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; display: flex; justify-content: center; }
-    .app-container { max-width: 420px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+    body { font-family: -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; display: flex; justify-content: center; overflow-x: hidden; }
+    .app-container { max-width: 420px; width: 100%; display: flex; flex-direction: column; gap: 14px; padding-bottom: 40px; }
     .card { background: #1e293b; border-radius: 20px; padding: 18px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
-    h2 { font-size: 15px; margin-bottom: 12px; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    h2 { font-size: 15px; margin-bottom: 12px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
     
     /* アバター表示 */
     .avatar-card { text-align: center; background: radial-gradient(circle at 50% 0%, #1e293b, #0f172a); border: 2px solid #38bdf8; position: relative; }
     .avatar-box { width: 140px; height: 140px; border-radius: 50%; background: #000; margin: 0 auto 12px; overflow: hidden; border: 4px solid #38bdf8; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
     #avatarImg { width: 100%; height: 100%; object-fit: cover; }
-    .level-badge { position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); background: #38bdf8; color: #0f172a; font-weight: 900; font-size: 12px; padding: 4px 12px; border-radius: 12px; white-space: nowrap; }
+    .level-badge { position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); background: #38bdf8; color: #0f172a; font-weight: 900; font-size: 12px; padding: 4px 12px; border-radius: 12px; white-space: nowrap; z-index: 10; }
     
     .char-name { font-size: 20px; font-weight: bold; margin-top: 10px; color: #fff; }
     .char-desc { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.4; padding: 0 10px; }
@@ -24,62 +24,121 @@
     input[type="password"], input[type="text"] { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #475569; background: #030712; color: white; font-size: 14px; outline: none; margin-bottom: 10px; }
     button { width: 100%; padding: 16px; background: #38bdf8; color: #0f172a; border: none; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 14px; transition: 0.2s; box-shadow: 0 4px 0 #0284c7; }
     button:active { transform: translateY(2px); box-shadow: none; }
-    button:disabled { background: #334155; color: #64748b; box-shadow: none; }
+    button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
     
-    .chat-box { background: #030712; border-radius: 16px; padding: 15px; min-height: 100px; font-size: 15px; line-height: 1.6; color: #e5e7eb; border: 1px solid #1f2937; position: relative; }
-    .voice-btn { width: auto; padding: 8px 15px; font-size: 12px; background: #6366f1; position: absolute; bottom: 10px; right: 10px; box-shadow: 0 3px 0 #4338ca; }
+    .chat-box { background: #030712; border-radius: 16px; padding: 15px; min-height: 80px; font-size: 15px; line-height: 1.6; color: #e5e7eb; border: 1px solid #1f2937; position: relative; margin-top: 15px; }
+    .voice-btn { width: auto; padding: 6px 12px; font-size: 11px; background: #6366f1; border-radius: 8px; color: white; border: none; cursor: pointer; float: right; margin-top: 8px; box-shadow: 0 3px 0 #4338ca; }
     
-    #previewArea { display: none; margin-bottom: 10px; position: relative; }
-    #previewImg { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; filter: grayscale(0.5); opacity: 0.7; }
-    .status-msg { font-size: 10px; color: #4b5563; text-align: center; margin-top: 8px; min-height: 1.2em; }
+    /* ログ表示エリア */
+    .history-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-right: 5px; }
+    .history-item { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 12px; border-left: 3px solid #38bdf8; }
+    .history-user { color: #94a3b8; font-weight: bold; margin-bottom: 2px; }
+
+    #previewArea { display: none; margin-bottom: 10px; position: relative; text-align: center; }
+    #previewImg { width: 100%; max-height: 150px; object-fit: contain; border-radius: 12px; filter: brightness(0.8); }
+    .status-msg { font-size: 10px; color: #64748b; text-align: center; margin-top: 8px; min-height: 1.2em; }
+    .reset-btn { background: transparent; color: #ef4444; border: none; font-size: 11px; box-shadow: none; padding: 5px; width: auto; cursor: pointer; font-weight: bold; }
   </style>
 </head>
 <body>
 
 <div class="app-container">
+  <!-- API設定 -->
   <div class="card">
     <input type="password" id="apiKey" placeholder="Gemini API Key を入力" />
-    <div id="statusMsg" class="status-msg"></div>
+    <div id="statusMsg" class="status-msg">2026 Ready.</div>
   </div>
 
-  <div class="card">
-    <h2>📸 元の写真からアバター生成</h2>
+  <!-- 写真アップロード（初回のみ） -->
+  <div class="card" id="setupCard">
+    <h2>📸 写真からアバターを誕生させる</h2>
     <div id="previewArea">
       <img id="previewImg" alt="元画像" />
     </div>
     <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhoto(event)" />
-    <button onclick="document.getElementById('photoInput').click()">📸 写真を選択（自分など）</button>
-    <button id="analyzeBtn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ アバター化開始</button>
+    <button onclick="document.getElementById('photoInput').click()">📸 写真を選択する</button>
+    <button id="analyzeBtn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ この写真でアバター化</button>
   </div>
 
+  <!-- メインステータス -->
   <div class="card avatar-card">
     <div class="avatar-box">
       <img id="avatarImg" src="https://image.pollinations.ai/prompt/cute%20anime%20child%20avatar%20silhouette?width=300&height=300&nologo=true" alt="アバター" />
-      <div class="level-badge" id="levelBadge">Lv.1 (幼少期)</div>
+      <div class="level-badge" id="levelBadge">Lv.1 (未誕生)</div>
     </div>
-    <div class="char-name" id="charName">あなたのアバター</div>
-    <div class="char-desc" id="charDesc">写真を読み込むと、AIがあなたの特徴を継承した「幼少期アバター」を生成します。</div>
+    <div class="char-name" id="charName">アバター未設定</div>
+    <div class="char-desc" id="charDesc">まずは写真をアップロードしてください。</div>
   </div>
 
+  <!-- 対話エリア -->
   <div class="card">
     <h2>💬 今日の頑張りを伝える</h2>
-    <input type="text" id="userInput" placeholder="例: 苦手な電話を1本かけた！" />
+    <input type="text" id="userInput" placeholder="例: 苦手な仕事を1つ終わらせた！" />
     <button id="sendBtn" onclick="talkToAvatar()" disabled>アバターに伝える (EXP UP)</button>
-    <div class="chat-box" id="chatBox" style="margin-top:15px;">
-      メッセージを待っているよ！
+    <div class="chat-box" id="chatBox">
+      あなたの報告を待っているよ！
     </div>
+  </div>
+
+  <!-- ログ -->
+  <div class="card">
+    <h2>
+      📜 成長の軌跡
+      <button class="reset-btn" onclick="resetData()">データ消去</button>
+    </h2>
+    <div class="history-list" id="historyList"></div>
   </div>
 </div>
 
 <script>
   let base64Image = "";
   let avatarTraits = "";
+  let rawPromptBase = "";
   let level = 1;
   let currentReply = "";
+  let logs = [];
 
   const apiKeyInput = document.getElementById('apiKey');
-  apiKeyInput.value = localStorage.getItem('avatar_pro_key') || '';
-  apiKeyInput.addEventListener('change', () => localStorage.setItem('avatar_pro_key', apiKeyInput.value.trim()));
+
+  window.onload = () => {
+    apiKeyInput.value = localStorage.getItem('avatar_pro_max_key') || '';
+    apiKeyInput.addEventListener('change', () => localStorage.setItem('avatar_pro_max_key', apiKeyInput.value.trim()));
+    loadData();
+  };
+
+  function loadData() {
+    const saved = localStorage.getItem('avatar_state_v2');
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    level = data.level || 1;
+    avatarTraits = data.traits || '';
+    rawPromptBase = data.rawPromptBase || '';
+    logs = data.logs || [];
+
+    document.getElementById('charName').innerText = data.name || 'アバター';
+    document.getElementById('charDesc').innerText = `特徴: ${avatarTraits}`;
+    document.getElementById('avatarImg').src = data.imgUrl || '';
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('setupCard').style.display = 'none';
+    updateLevelBadge();
+    renderLogs();
+  }
+
+  function saveData(imgUrl) {
+    const data = {
+      level, traits: avatarTraits, rawPromptBase,
+      name: document.getElementById('charName').innerText,
+      imgUrl: imgUrl || document.getElementById('avatarImg').src,
+      logs
+    };
+    localStorage.setItem('avatar_state_v2', JSON.stringify(data));
+  }
+
+  function resetData() {
+    if (!confirm("これまでの成長記録をすべてリセットしますか？")) return;
+    localStorage.removeItem('avatar_state_v2');
+    location.reload();
+  }
 
   function handlePhoto(event) {
     const file = event.target.files[0];
@@ -106,19 +165,18 @@
       const mRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
       const mData = await mRes.json();
       const models = mData.models.filter(m => m.supportedGenerationMethods.includes("generateContent")).sort((a,b)=>b.name.localeCompare(a.name));
-      const lastModel = localStorage.getItem('last_avatar_model') || models[0].name;
 
-      const prompt = `この画像の特徴（性別、髪型、目元、メガネの有無、表情）を分析し、以下のJSON形式でのみ返してください。
+      const prompt = `この画像の特徴（性別、髪型、メガネ、雰囲気）を分析し、以下のJSON形式でのみ返してください。余計な説明不要。
 {
-  "name": "可愛い幼少期風ニックネーム",
+  "name": "特徴を捉えた可愛い子供用ニックネーム",
   "traits": "見た目の特徴を1文で",
-  "imagePrompt": "A very cute childhood version of the person in photo, anime style, big expressive eyes, maintaining key traits like hair style and glasses, bright warm lighting, 4k"
+  "rawPromptBase": "Detailed English keywords of visual traits for AI image generation (e.g., black short hair, round glasses, kind eyes)"
 }`;
 
-      let success = false;
       for (const m of models) {
-        status.textContent = `${m.name.split('/').pop()} で分析中...`;
+        status.textContent = `試行中: ${m.name.split('/').pop()}...`;
         try {
+          // URLの組み立てを修正: m.name には既に models/ が含まれている
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${m.name}:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -126,28 +184,55 @@
               contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: base64Image } }] }]
             })
           });
-          const data = await res.json();
+          const data = await responseData = await res.json();
           if (res.ok) {
-            const result = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim());
+            const rawText = data.candidates[0].content.parts[0].text;
+            const jsonMatch = rawText.match(/\{.*\}/s);
+            if (!jsonMatch) continue;
+            const result = JSON.parse(jsonMatch[0]);
             
-            // アバター情報の更新
             avatarTraits = result.traits;
+            rawPromptBase = result.rawPromptBase;
             document.getElementById('charName').innerText = result.name;
             document.getElementById('charDesc').innerText = `特徴: ${result.traits}`;
             
-            // 画像生成 (Pollinations)
-            const finalImgPrompt = encodeURIComponent(result.imagePrompt);
-            document.getElementById('avatarImg').src = `https://image.pollinations.ai/prompt/${finalImgPrompt}?width=400&height=400&nologo=true&seed=${Math.floor(Math.random()*1000)}`;
-
             localStorage.setItem('last_avatar_model', m.name);
             document.getElementById('sendBtn').disabled = false;
-            status.textContent = "アバターが誕生しました！";
-            success = true; break;
+            document.getElementById('setupCard').style.display = 'none';
+            status.textContent = "誕生しました！";
+            
+            await updateAvatarVisual();
+            break;
           }
-        } catch (e) { console.warn(m.name, e); continue; }
+        } catch (e) { console.error(e); continue; }
       }
     } catch (err) { alert("エラー: " + err.message); }
     finally { analyzeBtn.disabled = false; }
+  }
+
+  async function updateAvatarVisual() {
+    let agePrompt = "A tiny very cute toddler version";
+    if (level >= 3 && level < 6) agePrompt = "A cute primary school student child version";
+    if (level >= 6) agePrompt = "A cool and mature young adult version";
+
+    const fullPrompt = `${agePrompt}, ${rawPromptBase}, anime style, high quality, soft lighting, profile icon`;
+    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=400&height=400&nologo=true&seed=${Math.floor(Math.random()*1000)}`;
+    
+    // 画像の反映
+    const avatarEl = document.getElementById('avatarImg');
+    avatarEl.style.opacity = 0.5;
+    avatarEl.src = imgUrl;
+    avatarEl.onload = () => { 
+      avatarEl.style.opacity = 1;
+      saveData(imgUrl);
+    };
+  }
+
+  function updateLevelBadge() {
+    let stage = "幼少期";
+    if (level >= 3 && level < 6) stage = "成長期";
+    if (level >= 6) stage = "成人期";
+    document.getElementById('levelBadge').innerText = `Lv.${level} (${stage})`;
   }
 
   async function talkToAvatar() {
@@ -160,14 +245,14 @@
     sendBtn.disabled = true;
     chatBox.textContent = "考え中...";
 
-    const role = level < 3 
-      ? "あなたはユーザーの幼少期アバターです。無邪気で天真爛漫、語尾は『〜だよ！』『〜だね！』を使い、100%肯定して可愛く褒めてください。" 
-      : "あなたは少し成長した少年・少女です。少し背伸びした口調で、対等な目線で優しく頼もしく褒めてください。";
+    let role = "あなたはユーザーの幼少期アバターです。言葉足らずで無邪気な子供の口調（『〜だよぉ！』『すごーい！』など）で、ユーザーを無条件に可愛く褒めてください。";
+    if (level >= 3 && level < 6) role = "あなたは少し成長した少年・少女です。しっかりした、でも親しみやすい口調で、ユーザーの努力を対等に褒めてください。";
+    if (level >= 6) role = "あなたは立派に成長した大人です。包容力のある頼もしい口調で、ユーザーの苦労を深く理解し、優しく労ってください。";
 
-    const prompt = `${role}\n見た目の特徴: ${avatarTraits}\nユーザーの報告: 「${text}」\n2〜3文で元気づける返答を。`;
+    const prompt = `${role}\nユーザーの特徴: ${avatarTraits}\n今回の報告: 「${text}」\n2〜3文で返答して。`;
 
     try {
-      const model = localStorage.getItem('last_avatar_model');
+      const model = localStorage.getItem('last_avatar_model') || 'models/gemini-1.5-flash';
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -176,15 +261,36 @@
       const data = await res.json();
       currentReply = data.candidates[0].content.parts[0].text;
       
-      chatBox.innerHTML = `${currentReply}<br><button class="voice-btn" onclick="speak()">🔊 聴く</button>`;
+      chatBox.innerHTML = `${currentReply}<br><button class="voice-btn" onclick="speak()">🔊 声を聴く</button>`;
       document.getElementById('userInput').value = "";
 
-      // レベルアップ
+      logs.unshift({ user: text, reply: currentReply });
+      if (logs.length > 20) logs.pop();
+      renderLogs();
+
+      const prevLevel = level;
       level++;
-      document.getElementById('levelBadge').innerText = `Lv.${level} (${level < 3 ? '幼少期' : '成長期'})`;
+      updateLevelBadge();
+
+      // ステージが変わる時だけ画像を再生成
+      if ((prevLevel < 3 && level >= 3) || (prevLevel < 6 && level >= 6)) {
+        await updateAvatarVisual();
+      } else {
+        saveData();
+      }
       
-    } catch (e) { chatBox.textContent = "送信エラー"; }
+    } catch (e) { chatBox.textContent = "ごめんなさい、ちょっと疲れちゃったみたい。"; }
     finally { sendBtn.disabled = false; }
+  }
+
+  function renderLogs() {
+    const container = document.getElementById('historyList');
+    container.innerHTML = logs.map(l => `
+      <div class="history-item">
+        <div class="history-user">YOU: ${l.user}</div>
+        <div class="history-reply">${l.reply}</div>
+      </div>
+    `).join('');
   }
 
   function speak() {
@@ -192,8 +298,14 @@
     window.speechSynthesis.cancel();
     const uttr = new SpeechSynthesisUtterance(currentReply);
     uttr.lang = 'ja-JP';
-    uttr.rate = 1.2;
-    uttr.pitch = level < 3 ? 1.6 : 1.1; // 幼少期は声を高く
+    uttr.rate = 1.1;
+    
+    // レベル（年齢）に応じてピッチ（高さ）を調整
+    let pitch = 1.7; // 幼少期
+    if (level >= 3 && level < 6) pitch = 1.2; // 成長期
+    if (level >= 6) pitch = 0.9; // 大人
+    
+    uttr.pitch = pitch;
     window.speechSynthesis.speak(uttr);
   }
 </script>
