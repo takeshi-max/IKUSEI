@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>歩いて育てる幼少期アバター</title>
+  <title>歩いて育てるアバター Pro</title>
 
   <!-- PWA設定 -->
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0f172a">
   <link rel="manifest" id="manifestLink">
 
   <style>
@@ -17,97 +15,97 @@
     body { font-family: -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; display: flex; justify-content: center; }
     .app-container { max-width: 420px; width: 100%; display: flex; flex-direction: column; gap: 14px; padding-bottom: 40px; }
     .card { background: #1e293b; border-radius: 20px; padding: 18px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
-    h2 { font-size: 15px; margin-bottom: 12px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
+    h2 { font-size: 14px; margin-bottom: 10px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
     
-    .avatar-card { text-align: center; background: radial-gradient(circle at 50% 0%, #1e293b, #0f172a); border: 2px solid #38bdf8; position: relative; }
-    .avatar-box { width: 140px; height: 140px; border-radius: 50%; background: #000; margin: 0 auto 12px; overflow: hidden; border: 4px solid #38bdf8; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+    /* アバターカード */
+    .avatar-card { text-align: center; background: radial-gradient(circle at 50% 0%, #1e293b, #0f172a); border: 2px solid #38bdf8; position: relative; padding-top: 30px; }
+    .avatar-box { width: 150px; height: 140px; border-radius: 50%; background: #000; margin: 0 auto 12px; overflow: hidden; border: 4px solid #38bdf8; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
     #avatarImg { width: 100%; height: 100%; object-fit: cover; }
     .level-badge { position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); background: #38bdf8; color: #0f172a; font-weight: 900; font-size: 12px; padding: 4px 12px; border-radius: 12px; white-space: nowrap; z-index: 10; }
     
-    .char-name { font-size: 20px; font-weight: bold; margin-top: 10px; color: #fff; }
-    .char-desc { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.4; padding: 0 10px; }
+    .char-name { font-size: 22px; font-weight: bold; margin-top: 10px; color: #fff; }
 
-    .exp-container { margin-top: 14px; text-align: left; }
-    .exp-label { font-size: 11px; color: #38bdf8; font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between; }
-    .exp-bar-bg { width: 100%; height: 10px; background: #0f172a; border-radius: 5px; overflow: hidden; border: 1px solid #334155; }
-    .exp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.4s ease; }
+    /* 成長目標の表示 */
+    .next-goal { font-size: 11px; color: #fbbf24; margin-top: 8px; font-weight: bold; }
 
+    /* EXPゲージ */
+    .exp-container { margin-top: 12px; }
+    .exp-bar-bg { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; border: 1px solid #334155; }
+    .exp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.5s ease; }
+
+    /* 歩数計 */
     .pedometer-card { text-align: center; background: #1e1b4b; border: 1px solid #6366f1; }
-    .step-count { font-size: 36px; font-weight: 900; color: #818cf8; margin: 5px 0; }
-    .step-unit { font-size: 14px; color: #a5b4fc; }
+    .step-count { font-size: 42px; font-weight: 900; color: #818cf8; line-height: 1; margin: 10px 0; }
 
-    input[type="password"], input[type="text"] { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #475569; background: #030712; color: white; font-size: 14px; outline: none; margin-bottom: 10px; }
-    .input-group { display: flex; gap: 8px; margin-bottom: 10px; }
-    .input-group input { margin-bottom: 0; flex: 1; }
-    .mic-btn { width: 50px; background: #475569; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
+    input[type="password"], input[type="text"] { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #475569; background: #030712; color: white; font-size: 15px; outline: none; margin-bottom: 10px; }
+    .input-group { display: flex; gap: 8px; }
+    .mic-btn { width: 55px; background: #475569; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 20px; }
     .mic-btn.recording { background: #ef4444; animation: pulse 1s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    button { width: 100%; padding: 16px; background: #38bdf8; color: #0f172a; border: none; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 14px; transition: 0.2s; box-shadow: 0 4px 0 #0284c7; }
-    button:active { transform: translateY(2px); box-shadow: none; }
-    button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
+    .main-btn { width: 100%; padding: 16px; background: #38bdf8; color: #0f172a; border: none; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 15px; box-shadow: 0 4px 0 #0284c7; }
+    .main-btn:active { transform: translateY(2px); box-shadow: none; }
+    .main-btn:disabled { background: #334155; color: #64748b; box-shadow: none; }
     
-    .chat-box { background: #030712; border-radius: 16px; padding: 15px; min-height: 80px; font-size: 15px; line-height: 1.6; color: #e5e7eb; border: 1px solid #1f2937; position: relative; margin-top: 15px; }
-    .voice-btn { width: auto; padding: 6px 12px; font-size: 11px; background: #6366f1; border-radius: 8px; color: white; border: none; cursor: pointer; float: right; margin-top: 8px; box-shadow: 0 3px 0 #4338ca; }
+    /* チャット吹き出し風 */
+    .chat-box { background: #030712; border-radius: 16px; padding: 18px; min-height: 40px; font-size: 15px; line-height: 1.6; color: #e5e7eb; border: 1px solid #38bdf8; position: relative; margin-top: 15px; display: none; }
+    .voice-btn { width: auto; padding: 8px 12px; font-size: 12px; background: #6366f1; border-radius: 8px; color: white; border: none; cursor: pointer; float: right; margin-top: 8px; }
     
-    .history-list { max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-    .history-item { background: #0f172a; border-radius: 8px; padding: 10px; font-size: 12px; border-left: 3px solid #38bdf8; }
-    .history-user { color: #94a3b8; font-weight: bold; margin-bottom: 2px; }
+    .history-list { max-height: 150px; overflow-y: auto; margin-top: 10px; }
+    .history-item { background: #0f172a; border-radius: 10px; padding: 10px; font-size: 12px; margin-bottom: 8px; border-left: 3px solid #38bdf8; }
 
-    #previewArea { display: none; margin-bottom: 10px; text-align: center; }
-    #previewImg { width: 100%; max-height: 150px; object-fit: contain; border-radius: 12px; }
-    .status-msg { font-size: 10px; color: #64748b; text-align: center; margin-top: 8px; min-height: 1.2em; }
-    .reset-btn { background: transparent; color: #ef4444; border: none; font-size: 11px; box-shadow: none; padding: 5px; cursor: pointer; font-weight: bold; }
+    #previewImg { width: 100%; max-height: 150px; object-fit: contain; border-radius: 12px; margin-bottom: 10px; }
+    .reset-btn { background: transparent; color: #64748b; border: none; font-size: 10px; cursor: pointer; }
   </style>
 </head>
 <body>
 
 <div class="app-container">
-  <div class="card">
-    <input type="password" id="apiKey" placeholder="Gemini API Key を入力" />
-    <div id="statusMsg" class="status-msg">歩いて育てよう！</div>
+  <div class="card" style="padding: 10px 18px;">
+    <input type="password" id="apiKey" placeholder="Gemini API Key" style="margin-bottom:0; font-size:10px; padding:8px;" />
   </div>
 
   <div class="card" id="setupCard">
-    <h2>📸 写真からアバター生成</h2>
-    <div id="previewArea"><img id="previewImg" alt="元画像" /></div>
+    <h2 style="margin-bottom:15px;">📸 写真からあなたの子供時代を生成</h2>
+    <div id="previewArea" style="display:none;"><img id="previewImg" /></div>
     <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhoto(event)" />
-    <button onclick="document.getElementById('photoInput').click()">📸 写真を選択・撮影</button>
-    <button id="analyzeBtn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ この顔でアバターを誕生させる</button>
+    <button class="main-btn" onclick="document.getElementById('photoInput').click()">📸 写真を選択して開始</button>
+    <button id="analyzeBtn" class="main-btn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ この顔の特徴を継承する</button>
   </div>
 
   <div class="card avatar-card">
     <div class="avatar-box">
-      <img id="avatarImg" src="https://image.pollinations.ai/prompt/cute%20anime%20child%20avatar%20silhouette?width=300&height=300&nologo=true" alt="アバター" />
+      <img id="avatarImg" src="https://image.pollinations.ai/prompt/cute%20anime%20child%20silhouette?width=300&height=300&nologo=true" />
       <div class="level-badge" id="levelBadge">Lv.1 (未誕生)</div>
     </div>
-    <div class="char-name" id="charName">アバター未設定</div>
-    <div class="char-desc" id="charDesc">写真を読み込むと、特徴を継承した「幼少期アバター」が生成されます。</div>
+    <div class="char-name" id="charName">---</div>
+    <div id="charDesc" style="font-size:11px; color:#94a3b8;">写真を読み込むと誕生します</div>
     
+    <!-- 成長目標 -->
+    <div class="next-goal" id="nextGoal">まずは写真をアップロードしてね！</div>
+
     <div class="exp-container">
-      <div class="exp-label"><span>GROWTH EXP</span><span id="expText">0 / 100 EXP</span></div>
       <div class="exp-bar-bg"><div class="exp-bar-fill" id="expFill"></div></div>
     </div>
   </div>
 
   <div class="card pedometer-card">
-    <h2>👟 今日の歩数</h2>
-    <div class="step-count" id="stepDisplay">0 <span class="step-unit">歩</span></div>
-    <button id="stepReportBtn" onclick="reportStepsToAvatar()" style="background:#6366f1; box-shadow:0 4px 0 #4f46e5; margin-top:6px;" disabled>歩数を報告してEXP獲得！</button>
+    <div class="step-count" id="stepDisplay">0 <span style="font-size:16px;">歩</span></div>
+    <button id="stepReportBtn" class="main-btn" onclick="reportStepsToAvatar()" style="background:#6366f1; box-shadow:0 4px 0 #4f46e5;" disabled>歩数を報告して成長させる</button>
   </div>
 
   <div class="card">
-    <h2>💬 話しかける</h2>
     <div class="input-group">
-      <input type="text" id="userInput" placeholder="例: 今日は天気がいいね！" />
+      <input type="text" id="userInput" placeholder="メッセージを入力..." />
       <button class="mic-btn" id="micBtn" onclick="toggleSpeechRecognition()">🎙️</button>
     </div>
-    <button id="sendBtn" onclick="talkToAvatar()" disabled>アバターに伝える</button>
-    <div class="chat-box" id="chatBox">報告を待ってるよ！</div>
+    <button id="sendBtn" class="main-btn" onclick="talkToAvatar()" disabled>話しかける</button>
+    
+    <div class="chat-box" id="chatBox"></div>
   </div>
 
   <div class="card">
-    <h2>📜 成長の記録 <button class="reset-btn" onclick="resetData()">データリセット</button></h2>
+    <h2 style="font-size:12px;">📜 思い出ログ <button class="reset-btn" onclick="resetData()">リセット</button></h2>
     <div class="history-list" id="historyList"></div>
   </div>
 </div>
@@ -129,43 +127,29 @@
 
   const apiKeyInput = document.getElementById('apiKey');
 
-  // PWA Manifest動的生成
-  const stringManifest = JSON.stringify({
-    name: "歩いて育てるアバター", short_name: "歩数アバター", start_url: ".", display: "standalone",
-    background_color: "#0f172a", theme_color: "#0f172a",
-    icons: [{ src: "https://image.pollinations.ai/prompt/cute%20anime%20avatar%20icon?width=192&height=192", sizes: "192x192", type: "image/png" }]
-  });
-  const blob = new Blob([stringManifest], {type: 'application/json'});
-  document.getElementById('manifestLink').setAttribute('href', URL.createObjectURL(blob));
-
   window.onload = () => {
-    apiKeyInput.value = localStorage.getItem('avatar_step_key') || '';
-    apiKeyInput.addEventListener('change', () => localStorage.setItem('avatar_step_key', apiKeyInput.value.trim()));
+    apiKeyInput.value = localStorage.getItem('avatar_step_v2_key') || '';
+    apiKeyInput.addEventListener('change', () => localStorage.setItem('avatar_step_v2_key', apiKeyInput.value.trim()));
     initSpeech();
     loadData();
   };
 
-  // 👟 歩数センサーの初期化（iOS/Android両対応）
   function initPedometer() {
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
       DeviceMotionEvent.requestPermission().then(res => {
         if (res === 'granted') window.addEventListener('devicemotion', handleMotion);
-      }).catch(console.error);
-    } else {
-      window.addEventListener('devicemotion', handleMotion);
-    }
+      });
+    } else { window.addEventListener('devicemotion', handleMotion); }
   }
 
   function handleMotion(event) {
     const accel = event.accelerationIncludingGravity;
     if (!accel) return;
-    const deltaX = Math.abs(accel.x - lastAccel.x);
-    const deltaY = Math.abs(accel.y - lastAccel.y);
-    const deltaZ = Math.abs(accel.z - lastAccel.z);
-    const magnitude = deltaX + deltaY + deltaZ;
-    if (magnitude > 12 && !isStepThrottled) {
+    const delta = Math.abs(accel.x - lastAccel.x) + Math.abs(accel.y - lastAccel.y) + Math.abs(accel.z - lastAccel.z);
+    if (delta > 12 && !isStepThrottled) {
       stepCount++;
-      document.getElementById('stepDisplay').innerHTML = `${stepCount} <span class="step-unit">歩</span>`;
+      document.getElementById('stepDisplay').innerHTML = `${stepCount} <span style="font-size:16px;">歩</span>`;
+      updateNextGoal();
       isStepThrottled = true;
       setTimeout(() => { isStepThrottled = false; }, 300);
     }
@@ -178,7 +162,7 @@
     recognition = new SpeechRec();
     recognition.lang = 'ja-JP';
     recognition.onresult = (e) => { document.getElementById('userInput').value = e.results[0][0].transcript; stopRecording(); };
-    recognition.onerror = stopRecording; recognition.onend = stopRecording;
+    recognition.onend = stopRecording;
   }
 
   function toggleSpeechRecognition() {
@@ -188,20 +172,24 @@
   function stopRecording() { isRecording = false; document.getElementById('micBtn').innerText = '🎙️'; document.getElementById('micBtn').classList.remove('recording'); }
 
   function loadData() {
-    const saved = localStorage.getItem('avatar_state_step_v1');
+    const saved = localStorage.getItem('avatar_state_step_v2');
     if (!saved) return;
     const data = JSON.parse(saved);
     level = data.level || 1; exp = data.exp || 0; avatarTraits = data.traits || ''; rawPromptBase = data.rawPromptBase || ''; logs = data.logs || [];
-    document.getElementById('charName').innerText = data.name; document.getElementById('charDesc').innerText = `特徴: ${avatarTraits}`;
-    document.getElementById('avatarImg').src = data.imgUrl; document.getElementById('sendBtn').disabled = false; document.getElementById('stepReportBtn').disabled = false; document.getElementById('setupCard').style.display = 'none';
-    updateLevelAndExp(); renderLogs();
+    document.getElementById('charName').innerText = data.name;
+    document.getElementById('charDesc').innerText = `特徴: ${avatarTraits}`;
+    document.getElementById('avatarImg').src = data.imgUrl;
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('stepReportBtn').disabled = false;
+    document.getElementById('setupCard').style.display = 'none';
+    updateLevelAndExp(); renderLogs(); updateNextGoal();
   }
 
   function saveData(imgUrl) {
-    localStorage.setItem('avatar_state_step_v1', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
+    localStorage.setItem('avatar_state_step_v2', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
   }
 
-  function resetData() { if (confirm("リセットしますか？")) { localStorage.removeItem('avatar_state_step_v1'); location.reload(); } }
+  function resetData() { if (confirm("リセットしますか？")) { localStorage.removeItem('avatar_state_step_v2'); location.reload(); } }
 
   function handlePhoto(event) {
     const file = event.target.files[0];
@@ -215,9 +203,8 @@
         if (w > h && w > max) { h *= max / w; w = max; } else if (h > max) { w *= max / h; h = max; }
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const resized = canvas.toDataURL('image/jpeg', 0.8);
-        base64Image = resized.split(',')[1];
-        document.getElementById('previewImg').src = resized;
+        base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+        document.getElementById('previewImg').src = canvas.toDataURL('image/jpeg');
         document.getElementById('previewArea').style.display = 'block';
         document.getElementById('analyzeBtn').style.display = 'block';
       };
@@ -227,23 +214,22 @@
   }
 
   async function startPhotoAnalysis() {
-    initPedometer(); // ここで歩数計の許可を求める
+    initPedometer();
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) return alert("APIキーを入力してください");
-    const status = document.getElementById('statusMsg'), analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.disabled = true; status.textContent = "AI分析中...";
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    analyzeBtn.disabled = true;
 
     try {
       const mRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
       const mData = await mRes.json();
       const models = mData.models.filter(m => m.supportedGenerationMethods.includes("generateContent")).sort((a,b)=>b.name.localeCompare(a.name));
 
-      const prompt = `この画像の本人の「面影」を完全に維持した幼少期アバターを作成します。
-性別、髪型、メガネ、目の特徴を詳細に分析してください。以下のJSON形式のみで返してください。
-{"name":"ニックネーム","traits":"特徴(1文)","rawPromptBase":"English visual description to RETAIN LIKENESS. Specific hair, eyes, skin tone."}`;
+      const prompt = `この画像の本人の「面影」を100%維持した幼少期アバターを作成します。
+性別、髪型、メガネ、目の形を詳細に分析してください。JSON形式のみで返してください。
+{"name":"ニックネーム","traits":"特徴(1文)","rawPromptBase":"Highly detailed English visual description of facial traits to RETAIN LIKENESS. Specific hair, eyes, and skin tone."}`;
 
       for (const m of models) {
-        status.textContent = `試行中: ${m.name.split('/').pop()}...`;
         try {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${m.name}:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -258,7 +244,6 @@
             document.getElementById('charDesc').innerText = `特徴: ${result.traits}`;
             localStorage.setItem('last_avatar_model', m.name);
             document.getElementById('sendBtn').disabled = false; document.getElementById('stepReportBtn').disabled = false; document.getElementById('setupCard').style.display = 'none';
-            status.textContent = "誕生しました！";
             await updateAvatarVisual(); break;
           }
         } catch (e) { continue; }
@@ -268,11 +253,16 @@
   }
 
   async function updateAvatarVisual() {
-    let age = level < 3 ? "tiny toddler child" : (level < 6 ? "primary school student" : "mature young adult");
-    const fullPrompt = `${age} version of person with ${rawPromptBase}, anime style, RETAIN IDENTITY, looking at viewer`;
+    let age = level < 3 ? "tiny toddler" : (level < 6 ? "cute primary student" : "mature young adult");
+    const fullPrompt = `${age} version of person with ${rawPromptBase}, anime style, RETAIN IDENTITY, looking at viewer, high quality`;
     const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=400&height=400&nologo=true&seed=${Math.floor(Math.random()*1000)}`;
     document.getElementById('avatarImg').src = imgUrl; 
     document.getElementById('avatarImg').onload = () => saveData(imgUrl);
+  }
+
+  function updateNextGoal() {
+    const stepsNeeded = Math.max(0, (maxExpPerLevel - exp) * 5 - stepCount * 5);
+    document.getElementById('nextGoal').innerText = `進化まであと約 ${stepsNeeded} 歩`;
   }
 
   function addExp(gained) {
@@ -280,21 +270,21 @@
     const prev = level;
     while (exp >= maxExpPerLevel) { exp -= maxExpPerLevel; level++; }
     updateLevelAndExp();
+    updateNextGoal();
     if ((prev < 3 && level >= 3) || (prev < 6 && level >= 6)) updateAvatarVisual(); else saveData();
   }
 
   function updateLevelAndExp() {
     const stages = level < 3 ? "幼少期" : (level < 6 ? "成長期" : "成人期");
     document.getElementById('levelBadge').innerText = `Lv.${level} (${stages})`;
-    document.getElementById('expText').innerText = `${exp} / ${maxExpPerLevel} EXP`;
     document.getElementById('expFill').style.width = `${(exp / maxExpPerLevel) * 100}%`;
   }
 
   async function reportStepsToAvatar() {
     if (stepCount === 0) return alert("まだ歩いていないみたいだよ！");
     const steps = stepCount; stepCount = 0;
-    document.getElementById('stepDisplay').innerHTML = `0 <span class="step-unit">歩</span>`;
-    const gainedExp = Math.min(80, Math.floor(steps / 10) + 20); // 歩数に応じてEXP
+    document.getElementById('stepDisplay').innerHTML = `0 <span style="font-size:16px;">歩</span>`;
+    const gainedExp = Math.min(85, Math.floor(steps / 5) + 15);
     await processAvatarMessage(`今日はお散歩して ${steps} 歩も歩いたよ！褒めて！`, gainedExp);
   }
 
@@ -302,16 +292,16 @@
     const text = document.getElementById('userInput').value.trim();
     if (!text) return;
     document.getElementById('userInput').value = "";
-    await processAvatarMessage(text, 30);
+    await processAvatarMessage(text, 25);
   }
 
   async function processAvatarMessage(text, gainedExp) {
     const apiKey = apiKeyInput.value.trim();
     const chatBox = document.getElementById('chatBox'), sendBtn = document.getElementById('sendBtn');
-    sendBtn.disabled = true; chatBox.textContent = "考え中...";
+    sendBtn.disabled = true; chatBox.style.display = "block"; chatBox.textContent = "AI思考中...";
 
-    const role = level < 3 ? "幼い子供の口調（〜だよぉ！等）で無条件に可愛く褒めて。" : (level < 6 ? "少し成長した少年・少女として対等に褒めて。" : "大人の頼もしいパートナーとして優しく労って。");
-    const prompt = `${role}\n【禁止】AI/アシスタントとしての返答、営業的・敬語的な定型句、不自然な長文。キャラクターになりきって。\n報告:「${text}」\n2文で返答。`;
+    const role = level < 3 ? "幼い子供。語尾は『〜だよぉ！』等。無条件に褒めて。" : (level < 6 ? "成長した少年・少女。対等に褒めて。" : "大人の頼もしいパートナー。優しく労って。");
+    const prompt = `${role}\n【禁止】AI風の返答、営業トーク、敬語定型句。なりきって。\n報告:「${text}」\n2文で返答。`;
 
     try {
       const model = localStorage.getItem('last_avatar_model') || 'models/gemini-1.5-flash';
@@ -323,14 +313,14 @@
       const data = await res.json();
       currentReply = data.candidates[0].content.parts[0].text;
       chatBox.innerHTML = `${currentReply}<br><button class="voice-btn" onclick="speak()">🔊 聴く</button>`;
-      logs.unshift({ user: text, reply: currentReply }); if (logs.length > 20) logs.pop();
+      logs.unshift({ user: text, reply: currentReply }); if (logs.length > 15) logs.pop();
       renderLogs(); addExp(gainedExp);
-    } catch (e) { chatBox.textContent = "エラー。"; }
+    } catch (e) { chatBox.textContent = "エラーが発生しました。"; }
     finally { sendBtn.disabled = false; }
   }
 
   function renderLogs() {
-    document.getElementById('historyList').innerHTML = logs.map(l => `<div class="history-item"><div class="history-user">YOU: ${l.user}</div><div>${l.reply}</div></div>`).join('');
+    document.getElementById('historyList').innerHTML = logs.map(l => `<div class="history-item"><div style="color:#94a3b8; font-weight:bold;">YOU: ${l.user}</div><div>${l.reply}</div></div>`).join('');
   }
 
   function speak() {
