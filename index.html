@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>歩いて育てる幼少期アバター</title>
+  <title>歩いて育てるアバター Pro Max</title>
 
   <!-- PWA設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -49,15 +49,20 @@
 
     #previewImg { width: 100%; max-height: 200px; object-fit: contain; border-radius: 12px; margin-bottom: 10px; background: #000; }
     .reset-btn { background: transparent; color: #64748b; border: none; font-size: 10px; cursor: pointer; }
-    .status-small { font-size: 10px; color: #475569; text-align: center; margin-top: 5px; }
+
+    /* センサー接続ボタンのスタイル */
+    .sensor-btn { background: #ef4444; color: white; padding: 4px 10px; border-radius: 8px; border: none; font-size: 10px; font-weight: bold; cursor: pointer; margin-left: 10px; }
+    .sensor-ok { color: #10b981; font-weight: bold; font-size: 10px; }
   </style>
 </head>
 <body>
 
 <div class="app-container">
-  <div class="card" style="padding: 10px 18px;">
-    <input type="password" id="apiKey" placeholder="Gemini API Key" style="margin-bottom:0; font-size:10px; padding:8px;" />
-    <div id="statusMsg" class="status-small">Ready.</div>
+  <div class="card" style="padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;">
+    <input type="password" id="apiKey" placeholder="Gemini API Key" style="margin-bottom:0; font-size:10px; padding:8px; flex: 1;" />
+    <div id="sensorStatusArea">
+      <button id="sensorConnectBtn" class="sensor-btn" onclick="initPedometer()">センサー接続</button>
+    </div>
   </div>
 
   <div class="card" id="setupCard">
@@ -66,7 +71,7 @@
     <div id="previewArea" style="display:none;"><img id="previewImg" /></div>
     <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhoto(event)" />
     <button class="main-btn" onclick="document.getElementById('photoInput').click()">📸 写真を選択・撮影</button>
-    <button id="analyzeBtn" class="main-btn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ この顔と名前で誕生させる</button>
+    <button id="analyzeBtn" class="main-btn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ アバターを誕生させる</button>
   </div>
 
   <div class="card avatar-card">
@@ -115,19 +120,29 @@
   let isStepThrottled = false;
 
   window.onload = () => {
-    document.getElementById('apiKey').value = localStorage.getItem('avatar_step_v5_key') || '';
-    document.getElementById('apiKey').addEventListener('change', (e) => localStorage.setItem('avatar_step_v5_key', e.target.value.trim()));
+    document.getElementById('apiKey').value = localStorage.getItem('avatar_step_v6_key') || '';
+    document.getElementById('apiKey').addEventListener('change', (e) => localStorage.setItem('avatar_step_v6_key', e.target.value.trim()));
     initSpeech();
     loadData();
   };
 
+  // 👟 センサー起動ボタン専用の関数
   async function initPedometer() {
+    const statusArea = document.getElementById('sensorStatusArea');
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
       try {
         const res = await DeviceMotionEvent.requestPermission();
-        if (res === 'granted') window.addEventListener('devicemotion', handleMotion);
+        if (res === 'granted') {
+          window.addEventListener('devicemotion', handleMotion);
+          statusArea.innerHTML = '<span class="sensor-ok">センサーON</span>';
+        } else {
+          alert("歩数を測るにはセンサーを許可してください。");
+        }
       } catch (e) { console.error(e); }
-    } else { window.addEventListener('devicemotion', handleMotion); }
+    } else {
+      window.addEventListener('devicemotion', handleMotion);
+      statusArea.innerHTML = '<span class="sensor-ok">センサーON</span>';
+    }
   }
 
   function handleMotion(event) {
@@ -160,7 +175,7 @@
   function stopRecording() { isRecording = false; document.getElementById('micBtn').innerText = '🎙️'; document.getElementById('micBtn').classList.remove('recording'); }
 
   function loadData() {
-    const saved = localStorage.getItem('avatar_state_step_v5');
+    const saved = localStorage.getItem('avatar_state_step_v6');
     if (!saved) return;
     const data = JSON.parse(saved);
     level = data.level || 1; exp = data.exp || 0; avatarTraits = data.traits || ''; rawPromptBase = data.rawPromptBase || ''; logs = data.logs || [];
@@ -173,10 +188,10 @@
   }
 
   function saveData(imgUrl) {
-    localStorage.setItem('avatar_state_step_v5', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
+    localStorage.setItem('avatar_state_step_v6', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
   }
 
-  function resetData() { if (confirm("成長記録をリセットしますか？")) { localStorage.removeItem('avatar_state_step_v5'); location.reload(); } }
+  function resetData() { if (confirm("成長記録をリセットしますか？")) { localStorage.removeItem('avatar_state_step_v6'); location.reload(); } }
 
   function handlePhoto(event) {
     const file = event.target.files[0];
@@ -203,7 +218,6 @@
   async function startPhotoAnalysis() {
     const userName = document.getElementById('userName').value.trim();
     if (!userName) return alert("まずはあなたの名前を教えてね！");
-    await initPedometer();
     const apiKey = document.getElementById('apiKey').value.trim();
     if (!apiKey) return alert("APIキーを入力してください");
     const analyzeBtn = document.getElementById('analyzeBtn');
@@ -214,10 +228,8 @@
       const mData = await mRes.json();
       const models = mData.models.filter(m => m.supportedGenerationMethods.includes("generateContent")).sort((a,b)=>b.name.localeCompare(a.name));
 
-      const prompt = `この画像の本人の「面影（髪型、メガネ、目の形、雰囲気）」を100%維持した幼少期アバターを作成します。
-また、本人の名前「${userName}」から、最高に可愛らしい子供時代のニックネームを付けてください。
-JSON形式のみで返してください。
-{"name":"生成したニックネーム","traits":"特徴(1文)","rawPromptBase":"Highly detailed English visual description of facial traits to RETAIN LIKENESS. Mention specific hair style, eye shape, and skin tone."}`;
+      const prompt = `この画像の本人の「面影」を完全に維持した幼少期アバターを作成します。本人の名前「${userName}」から可愛いニックネームを付けてください。JSON形式のみで返してください。
+{"name":"ニックネーム","traits":"特徴","rawPromptBase":"English visual description to RETAIN LIKENESS."}`;
 
       for (const m of models) {
         try {
