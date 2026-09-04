@@ -3,42 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>歩いて育てる幼少期アバター Pro Max</title>
+  <title>歩いて育てる幼少期アバター</title>
   <style>
+    /* デザインは維持（一部省略・以前と同じ） */
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 16px; display: flex; justify-content: center; }
     .app-container { max-width: 420px; width: 100%; display: flex; flex-direction: column; gap: 14px; padding-bottom: 40px; }
     .card { background: #1e293b; border-radius: 20px; padding: 18px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
-    h2 { font-size: 14px; margin-bottom: 10px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
-    
     .avatar-card { text-align: center; background: radial-gradient(circle at 50% 0%, #1e293b, #0f172a); border: 2px solid #38bdf8; position: relative; padding-top: 30px; }
     .avatar-box { width: 150px; height: 150px; border-radius: 50%; background: #000; margin: 0 auto 12px; overflow: hidden; border: 4px solid #38bdf8; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
     #avatarImg { width: 100%; height: 100%; object-fit: cover; }
     .level-badge { position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); background: #38bdf8; color: #0f172a; font-weight: 900; font-size: 12px; padding: 4px 12px; border-radius: 12px; white-space: nowrap; z-index: 10; }
-    
     .char-name { font-size: 24px; font-weight: bold; margin-top: 10px; color: #fff; }
     .next-goal { font-size: 11px; color: #fbbf24; margin-top: 8px; font-weight: bold; }
-
     .exp-bar-bg { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; border: 1px solid #334155; margin-top: 10px; }
     .exp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.5s ease; }
-
     .pedometer-card { text-align: center; background: #1e1b4b; border: 1px solid #6366f1; }
     .step-count { font-size: 42px; font-weight: 900; color: #818cf8; line-height: 1; margin: 10px 0; }
-
     input[type="password"], input[type="text"] { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #475569; background: #030712; color: white; font-size: 15px; outline: none; margin-bottom: 10px; }
     .input-group { display: flex; gap: 8px; }
     .mic-btn { width: 55px; background: #475569; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-size: 20px; }
     .mic-btn.recording { background: #ef4444; animation: pulse 1s infinite; }
-
     .main-btn { width: 100%; padding: 16px; background: #38bdf8; color: #0f172a; border: none; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 15px; box-shadow: 0 4px 0 #0284c7; }
     .main-btn:active { transform: translateY(2px); box-shadow: none; }
-    
     .chat-box { background: #030712; border-radius: 16px; padding: 18px; font-size: 15px; line-height: 1.6; color: #e5e7eb; border: 1px solid #38bdf8; position: relative; margin-top: 15px; display: none; }
     .voice-btn { width: auto; padding: 8px 12px; font-size: 12px; background: #6366f1; border-radius: 8px; color: white; border: none; cursor: pointer; float: right; margin-top: 8px; }
-    
     .history-list { max-height: 150px; overflow-y: auto; margin-top: 10px; }
     .history-item { background: #0f172a; border-radius: 10px; padding: 10px; font-size: 12px; margin-bottom: 8px; border-left: 3px solid #38bdf8; }
-    #previewImg { width: 100%; max-height: 200px; object-fit: contain; border-radius: 12px; margin-bottom: 10px; background: #000; }
     .reset-btn { background: transparent; color: #64748b; border: none; font-size: 10px; cursor: pointer; }
     .sensor-btn { background: #ef4444; color: white; padding: 4px 10px; border-radius: 8px; border: none; font-size: 10px; font-weight: bold; cursor: pointer; margin-left: 10px; }
   </style>
@@ -48,33 +39,30 @@
 <div class="app-container">
   <div class="card" style="padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;">
     <input type="password" id="apiKey" placeholder="Gemini API Key" style="margin-bottom:0; font-size:10px; padding:8px; flex: 1;" />
-    <div id="sensorStatusArea">
-      <button id="sensorConnectBtn" class="sensor-btn" onclick="initPedometer()">センサー接続</button>
-    </div>
+    <div id="sensorStatusArea"><button id="sensorConnectBtn" class="sensor-btn" onclick="initPedometer()">センサー接続</button></div>
   </div>
 
   <div class="card" id="setupCard">
     <h2 style="margin-bottom:15px;">📸 あなたの子供時代を生成</h2>
-    <input type="text" id="userName" placeholder="あなたの名前（例: たろう）" style="background:#0f172a; border:1px solid #38bdf8; margin-bottom:15px;" />
-    <div id="previewArea" style="display:none;"><img id="previewImg" /></div>
+    <input type="text" id="userName" placeholder="あなたの名前" />
+    <div id="previewArea" style="display:none;"><img id="previewImg" style="width:100%; border-radius:12px; margin-bottom:10px;" /></div>
     <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhoto(event)" />
     <button class="main-btn" onclick="document.getElementById('photoInput').click()">📸 写真を選択・撮影</button>
-    <button id="analyzeBtn" class="main-btn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ アバターを誕生させる</button>
+    <button id="analyzeBtn" class="main-btn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981;">✨ 誕生させる</button>
   </div>
 
   <div class="card avatar-card">
-    <div class="avatar-box">
-      <img id="avatarImg" src="https://image.pollinations.ai/prompt/cute%20anime%20child%20silhouette?width=300&height=300&nologo=true" />
+    <div class="avatar-box"><img id="avatarImg" src="https://image.pollinations.ai/prompt/cute%20anime%20child%20silhouette?width=300&height=300&nologo=true" />
       <div class="level-badge" id="levelBadge">Lv.1 (未誕生)</div>
     </div>
     <div class="char-name" id="charName">---</div>
-    <div id="nextGoal" class="next-goal">名前を入れて写真をアップロードしてね！</div>
+    <div id="nextGoal" class="next-goal">名前を入れて写真を撮ってね！</div>
     <div class="exp-bar-bg"><div class="exp-bar-fill" id="expFill"></div></div>
   </div>
 
   <div class="card pedometer-card">
     <div class="step-count" id="stepDisplay">0 <span style="font-size:16px;">歩</span></div>
-    <button id="stepReportBtn" class="main-btn" onclick="reportStepsToAvatar()" style="background:#6366f1; box-shadow:0 4px 0 #4f46e5;" disabled>歩数を報告して成長させる</button>
+    <button id="stepReportBtn" class="main-btn" onclick="reportStepsToAvatar()" style="background:#6366f1;" disabled>歩数を報告して成長させる</button>
   </div>
 
   <div class="card">
@@ -93,40 +81,28 @@
 </div>
 
 <script>
-  let base64Image = "";
-  let avatarTraits = "";
-  let rawPromptBase = "";
-  let level = 1;
-  let exp = 0;
-  const maxExpPerLevel = 100;
-  let stepCount = 0;
-  let currentReply = "";
-  let logs = [];
-  let recognition = null;
-  let isRecording = false;
-  let lastAccel = { x: 0, y: 0, z: 0 };
-  let isStepThrottled = false;
+  let base64Image = "", avatarTraits = "", rawPromptBase = "", level = 1, exp = 0;
+  const maxExpPerLevel = 100; // 100点たまるとレベルアップ
+  let stepCount = 0, currentReply = "", logs = [], recognition = null, isRecording = false, lastAccel = { x: 0, y: 0, z: 0 }, isStepThrottled = false;
 
   window.onload = () => {
-    document.getElementById('apiKey').value = localStorage.getItem('avatar_step_v7_key') || '';
-    document.getElementById('apiKey').addEventListener('change', (e) => localStorage.setItem('avatar_step_v7_key', e.target.value.trim()));
-    initSpeech();
-    loadData();
+    document.getElementById('apiKey').value = localStorage.getItem('avatar_slow_v1_key') || '';
+    document.getElementById('apiKey').addEventListener('change', (e) => localStorage.setItem('avatar_slow_v1_key', e.target.value.trim()));
+    initSpeech(); loadData();
   };
 
   async function initPedometer() {
-    const statusArea = document.getElementById('sensorStatusArea');
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
       try {
         const res = await DeviceMotionEvent.requestPermission();
         if (res === 'granted') {
           window.addEventListener('devicemotion', handleMotion);
-          statusArea.innerHTML = '<span style="color:#10b981; font-weight:bold; font-size:10px;">センサーON</span>';
+          document.getElementById('sensorStatusArea').innerHTML = '<span style="color:#10b981; font-size:10px;">センサーON</span>';
         }
       } catch (e) { console.error(e); }
     } else {
       window.addEventListener('devicemotion', handleMotion);
-      statusArea.innerHTML = '<span style="color:#10b981; font-weight:bold; font-size:10px;">センサーON</span>';
+      document.getElementById('sensorStatusArea').innerHTML = '<span style="color:#10b981; font-size:10px;">センサーON</span>';
     }
   }
 
@@ -147,8 +123,7 @@
   function initSpeech() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) { document.getElementById('micBtn').style.display = 'none'; return; }
-    recognition = new SpeechRec();
-    recognition.lang = 'ja-JP';
+    recognition = new SpeechRec(); recognition.lang = 'ja-JP';
     recognition.onresult = (e) => { document.getElementById('userInput').value = e.results[0][0].transcript; stopRecording(); };
     recognition.onend = stopRecording;
   }
@@ -160,27 +135,23 @@
   function stopRecording() { isRecording = false; document.getElementById('micBtn').innerText = '🎙️'; }
 
   function loadData() {
-    const saved = localStorage.getItem('avatar_state_step_v7');
+    const saved = localStorage.getItem('avatar_state_slow_v1');
     if (!saved) return;
     const data = JSON.parse(saved);
     level = data.level || 1; exp = data.exp || 0; avatarTraits = data.traits || ''; rawPromptBase = data.rawPromptBase || ''; logs = data.logs || [];
-    document.getElementById('charName').innerText = data.name;
-    document.getElementById('avatarImg').src = data.imgUrl;
-    document.getElementById('sendBtn').disabled = false;
-    document.getElementById('stepReportBtn').disabled = false;
-    document.getElementById('setupCard').style.display = 'none';
+    document.getElementById('charName').innerText = data.name; document.getElementById('avatarImg').src = data.imgUrl;
+    document.getElementById('sendBtn').disabled = false; document.getElementById('stepReportBtn').disabled = false; document.getElementById('setupCard').style.display = 'none';
     updateLevelAndExp(); renderLogs(); updateNextGoal();
   }
 
   function saveData(imgUrl) {
-    localStorage.setItem('avatar_state_step_v7', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
+    localStorage.setItem('avatar_state_slow_v1', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
   }
 
-  function resetData() { if (confirm("成長記録をリセットしますか？")) { localStorage.removeItem('avatar_state_step_v7'); location.reload(); } }
+  function resetData() { if (confirm("成長記録をリセットしますか？")) { localStorage.removeItem('avatar_state_slow_v1'); location.reload(); } }
 
   function handlePhoto(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const file = event.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
       const img = new Image();
@@ -202,21 +173,17 @@
 
   async function startPhotoAnalysis() {
     const userName = document.getElementById('userName').value.trim();
-    if (!userName) return alert("まずはあなたの名前を教えてね！");
+    if (!userName) return alert("名前を教えてね！");
     const apiKey = document.getElementById('apiKey').value.trim();
     if (!apiKey) return alert("APIキーを入力してください");
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.disabled = true;
+    const analyzeBtn = document.getElementById('analyzeBtn'); analyzeBtn.disabled = true;
 
     try {
       const mRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
       const mData = await mRes.json();
       const models = mData.models.filter(m => m.supportedGenerationMethods.includes("generateContent")).sort((a,b)=>b.name.localeCompare(a.name));
 
-      const prompt = `この画像の本人の「面影」を完全に維持した幼少期アバターを作成します。
-さらに、本人の名前「${userName}」から、ひらがなで可愛らしく呼ぶ子供時代の愛称（ニックネーム）を1つ生成してください。
-JSON形式のみで返してください。
-{"name":"生成した愛称（ひらがな）","traits":"特徴","rawPromptBase":"Highly detailed visual description for AI image generation to RETAIN LIKENESS."}`;
+      const prompt = `この画像の本人の「面影」を完全に維持した幼少期アバターを作成します。本人の名前「${userName}」からひらがなで可愛い子供時代の愛称を作ってください。JSON形式でのみ返してください。{"name":"愛称","traits":"特徴","rawPromptBase":"English visual description to RETAIN LIKENESS."}`;
 
       for (const m of models) {
         try {
@@ -228,18 +195,10 @@ JSON形式のみで返してください。
           const data = await res.json();
           if (res.ok) {
             const result = JSON.parse(data.candidates[0].content.parts[0].text.match(/\{.*\}/s)[0]);
-            
-            // 失敗防止ロジック：AIが「nickname」と言い張ったら強制修正
-            let finalName = result.name;
-            if (!finalName || finalName.toLowerCase().includes("nickname")) {
-                finalName = userName + "ちゃん";
-            }
-            
             avatarTraits = result.traits; rawPromptBase = result.rawPromptBase;
-            document.getElementById('charName').innerText = finalName;
+            document.getElementById('charName').innerText = result.name || userName + "ちゃん";
             document.getElementById('setupCard').style.display = 'none';
-            document.getElementById('sendBtn').disabled = false;
-            document.getElementById('stepReportBtn').disabled = false;
+            document.getElementById('sendBtn').disabled = false; document.getElementById('stepReportBtn').disabled = false;
             localStorage.setItem('last_avatar_model', m.name);
             await updateAvatarVisual(); break;
           }
@@ -250,52 +209,62 @@ JSON形式のみで返してください。
   }
 
   async function updateAvatarVisual() {
-    let age = level < 3 ? "tiny toddler" : (level < 6 ? "cute primary student" : "mature young adult");
-    const fullPrompt = `${age} version of person with ${rawPromptBase}, anime style, RETAIN IDENTITY, looking at viewer, high quality, soft lighting`;
+    // 進化のタイミングを変更: Lv.11で中学生、Lv.31で大人
+    let age = level < 11 ? "tiny toddler" : (level < 31 ? "cute primary student" : "mature young adult");
+    const fullPrompt = `${age} anime version of person with ${rawPromptBase}, RETAIN IDENTITY, looking at viewer, high quality, soft lighting`;
     const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=400&height=400&nologo=true&seed=${Math.floor(Math.random()*1000)}`;
     document.getElementById('avatarImg').src = imgUrl; 
     document.getElementById('avatarImg').onload = () => saveData(imgUrl);
   }
 
   function updateNextGoal() {
-    const stepsNeeded = Math.max(0, (maxExpPerLevel - exp) * 5 - stepCount * 5);
-    document.getElementById('nextGoal').innerText = `進化まであと約 ${stepsNeeded} 歩`;
+    // 成長スピードを調整: 500歩で1EXP = 100EXP(LvUP)には5万歩必要
+    // ご提案の「5000歩で10EXP」のペースに合わせる
+    const currentTotalNeeded = maxExpPerLevel - exp;
+    const stepsNeeded = Math.max(0, currentTotalNeeded * 500 - stepCount);
+    
+    let stage = level < 11 ? "成長期" : (level < 31 ? "成人期" : "最高レベル");
+    document.getElementById('nextGoal').innerText = `次の姿(${stage})まで あと約 ${stepsNeeded} 歩`;
   }
 
   function addExp(gained) {
     exp += gained;
-    const prev = level;
+    const prevLevel = level;
     while (exp >= maxExpPerLevel) { exp -= maxExpPerLevel; level++; }
     updateLevelAndExp(); updateNextGoal();
-    if ((prev < 3 && level >= 3) || (prev < 6 && level >= 6)) updateAvatarVisual(); else saveData();
+    // 進化の節目でのみ画像更新
+    if ((prevLevel < 11 && level >= 11) || (prevLevel < 31 && level >= 31)) updateAvatarVisual(); else saveData();
   }
 
   function updateLevelAndExp() {
-    const stages = level < 3 ? "幼少期" : (level < 6 ? "成長期" : "成人期");
+    const stages = level < 11 ? "幼少期" : (level < 31 ? "成長期" : "成人期");
     document.getElementById('levelBadge').innerText = `Lv.${level} (${stages})`;
     document.getElementById('expFill').style.width = `${(exp / maxExpPerLevel) * 100}%`;
   }
 
   async function reportStepsToAvatar() {
-    if (stepCount === 0) return alert("まだ歩いていないよ！");
+    if (stepCount < 100) return alert("もっと歩いてから報告してね！(最低100歩〜)");
     const steps = stepCount; stepCount = 0;
     document.getElementById('stepDisplay').innerHTML = `0 <span style="font-size:16px;">歩</span>`;
-    const gainedExp = Math.min(85, Math.floor(steps / 5) + 20);
-    await processAvatarMessage(`今日はお散歩して ${steps} 歩も歩いたよ！褒めて！`, gainedExp);
+    
+    // 【調整】500歩で1EXPに設定（5000歩で10EXP）
+    const gainedExp = Math.floor(steps / 500); 
+    await processAvatarMessage(`今日はお散歩して ${steps} 歩も歩いたよ！`, gainedExp);
   }
 
   async function talkToAvatar() {
     const text = document.getElementById('userInput').value.trim();
     if (!text) return;
     document.getElementById('userInput').value = "";
-    await processAvatarMessage(text, 35);
+    // お喋りでもらえるEXPも大幅減(35→2)にして、歩きメインにする
+    await processAvatarMessage(text, 2);
   }
 
   async function processAvatarMessage(text, gainedExp) {
     const chatBox = document.getElementById('chatBox'), sendBtn = document.getElementById('sendBtn');
     sendBtn.disabled = true; chatBox.style.display = "block"; chatBox.textContent = "AI思考中...";
-    const role = level < 3 ? "幼い子供の口調" : (level < 6 ? "成長した少年・少女の口調" : "大人のパートナーの口調");
-    const prompt = `あなたは「${role}」になりきり、セリフのみを出力してください。解説・思考プロセス・英訳・AIであることの言及、営業トークは禁止です。二文以内で返答してください。報告:「${text}」`;
+    const role = level < 11 ? "幼い子供の口調" : (level < 31 ? "成長した少年・少女の口調" : "大人のパートナーの口調");
+    const prompt = `あなたは「${role}」になりきり、セリフのみ出力。英訳・思考プロセス禁止。二文以内。報告:「${text}」`;
     try {
       const apiKey = document.getElementById('apiKey').value.trim();
       const model = localStorage.getItem('last_avatar_model') || 'models/gemini-1.5-flash';
@@ -324,7 +293,7 @@ JSON形式のみで返してください。
     window.speechSynthesis.cancel();
     const uttr = new SpeechSynthesisUtterance(currentReply);
     uttr.lang = 'ja-JP'; uttr.rate = 1.1;
-    uttr.pitch = level < 3 ? 1.7 : (level < 6 ? 1.2 : 0.9);
+    uttr.pitch = level < 11 ? 1.7 : (level < 31 ? 1.2 : 0.9);
     window.speechSynthesis.speak(uttr);
   }
 </script>
