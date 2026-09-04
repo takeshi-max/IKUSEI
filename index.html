@@ -17,23 +17,18 @@
     .card { background: #1e293b; border-radius: 20px; padding: 18px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
     h2 { font-size: 14px; margin-bottom: 10px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
     
-    /* アバターカード */
     .avatar-card { text-align: center; background: radial-gradient(circle at 50% 0%, #1e293b, #0f172a); border: 2px solid #38bdf8; position: relative; padding-top: 30px; }
     .avatar-box { width: 150px; height: 140px; border-radius: 50%; background: #000; margin: 0 auto 12px; overflow: hidden; border: 4px solid #38bdf8; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 25px rgba(56, 189, 248, 0.5); }
     #avatarImg { width: 100%; height: 100%; object-fit: cover; }
     .level-badge { position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); background: #38bdf8; color: #0f172a; font-weight: 900; font-size: 12px; padding: 4px 12px; border-radius: 12px; white-space: nowrap; z-index: 10; }
     
     .char-name { font-size: 22px; font-weight: bold; margin-top: 10px; color: #fff; }
-
-    /* 成長目標の表示 */
     .next-goal { font-size: 11px; color: #fbbf24; margin-top: 8px; font-weight: bold; }
 
-    /* EXPゲージ */
     .exp-container { margin-top: 12px; }
     .exp-bar-bg { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; border: 1px solid #334155; }
     .exp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.5s ease; }
 
-    /* 歩数計 */
     .pedometer-card { text-align: center; background: #1e1b4b; border: 1px solid #6366f1; }
     .step-count { font-size: 42px; font-weight: 900; color: #818cf8; line-height: 1; margin: 10px 0; }
 
@@ -47,7 +42,6 @@
     .main-btn:active { transform: translateY(2px); box-shadow: none; }
     .main-btn:disabled { background: #334155; color: #64748b; box-shadow: none; }
     
-    /* チャット吹き出し風 */
     .chat-box { background: #030712; border-radius: 16px; padding: 18px; min-height: 40px; font-size: 15px; line-height: 1.6; color: #e5e7eb; border: 1px solid #38bdf8; position: relative; margin-top: 15px; display: none; }
     .voice-btn { width: auto; padding: 8px 12px; font-size: 12px; background: #6366f1; border-radius: 8px; color: white; border: none; cursor: pointer; float: right; margin-top: 8px; }
     
@@ -81,7 +75,6 @@
     <div class="char-name" id="charName">---</div>
     <div id="charDesc" style="font-size:11px; color:#94a3b8;">写真を読み込むと誕生します</div>
     
-    <!-- 成長目標 -->
     <div class="next-goal" id="nextGoal">まずは写真をアップロードしてね！</div>
 
     <div class="exp-container">
@@ -200,7 +193,7 @@
       img.onload = function() {
         const canvas = document.createElement('canvas');
         let w = img.width, h = img.height, max = 800;
-        if (w > h && w > max) { h *= max / w; w = max; } else if (h > max) { w *= max / h; h = max; }
+        if (w > h && w > max) { h *= max / w; w = max; } else if (h > max) { w *= max / h; height = max; }
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         base64Image = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
@@ -300,8 +293,24 @@
     const chatBox = document.getElementById('chatBox'), sendBtn = document.getElementById('sendBtn');
     sendBtn.disabled = true; chatBox.style.display = "block"; chatBox.textContent = "AI思考中...";
 
-    const role = level < 3 ? "幼い子供。語尾は『〜だよぉ！』等。無条件に褒めて。" : (level < 6 ? "成長した少年・少女。対等に褒めて。" : "大人の頼もしいパートナー。優しく労って。");
-    const prompt = `${role}\n【禁止】AI風の返答、営業トーク、敬語定型句。なりきって。\n報告:「${text}」\n2文で返答。`;
+    // 【修正】AIへの指示（プロンプト）を「セリフのみ」に極めて厳格化
+    const role = level < 3 ? "幼い子供の口調（〜だよぉ！等）" : (level < 6 ? "成長した少年・少女の口調" : "大人の頼もしいパートナーの口調");
+    
+    const prompt = `
+    【設定】
+    あなたはユーザーの「${role}」になりきってください。
+    
+    【ルール】
+    1. セリフのみを出力してください。
+    2. 解説、思考プロセス(Self-Correction)、下書き(Draft)、英訳などは【一切禁止】です。
+    3. AIであることを明かさないでください。
+    4. 二文以内で短く返答してください。
+
+    【ユーザーの報告】
+    「${text}」
+    
+    【出力】
+    (ここにセリフのみを書く)`;
 
     try {
       const model = localStorage.getItem('last_avatar_model') || 'models/gemini-1.5-flash';
@@ -311,8 +320,16 @@
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
       });
       const data = await res.json();
-      currentReply = data.candidates[0].content.parts[0].text;
+      
+      // AIの返答をクリーニング（万が一解説が含まれた場合の対策）
+      let reply = data.candidates[0].content.parts[0].text;
+      
+      // 改行や余計な記号を少し整理
+      reply = reply.split('\n').filter(line => line.trim() !== '').pop(); // 最後の1行のみ取得するなどの保険
+      
+      currentReply = reply.trim();
       chatBox.innerHTML = `${currentReply}<br><button class="voice-btn" onclick="speak()">🔊 聴く</button>`;
+      
       logs.unshift({ user: text, reply: currentReply }); if (logs.length > 15) logs.pop();
       renderLogs(); addExp(gainedExp);
     } catch (e) { chatBox.textContent = "エラーが発生しました。"; }
