@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>幼少期アバター育成 Pro Max</title>
+  <title>歩いて育てる幼少期アバター</title>
 
   <!-- PWA設定 -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -19,7 +19,6 @@
     .card { background: #1e293b; border-radius: 20px; padding: 18px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
     h2 { font-size: 15px; margin-bottom: 12px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; }
     
-    /* アバター表示 */
     .avatar-card { text-align: center; background: radial-gradient(circle at 50% 0%, #1e293b, #0f172a); border: 2px solid #38bdf8; position: relative; }
     .avatar-box { width: 140px; height: 140px; border-radius: 50%; background: #000; margin: 0 auto 12px; overflow: hidden; border: 4px solid #38bdf8; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
     #avatarImg { width: 100%; height: 100%; object-fit: cover; }
@@ -28,16 +27,23 @@
     .char-name { font-size: 20px; font-weight: bold; margin-top: 10px; color: #fff; }
     .char-desc { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.4; padding: 0 10px; }
 
-    /* 入力エリア */
+    .exp-container { margin-top: 14px; text-align: left; }
+    .exp-label { font-size: 11px; color: #38bdf8; font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .exp-bar-bg { width: 100%; height: 10px; background: #0f172a; border-radius: 5px; overflow: hidden; border: 1px solid #334155; }
+    .exp-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.4s ease; }
+
+    .pedometer-card { text-align: center; background: #1e1b4b; border: 1px solid #6366f1; }
+    .step-count { font-size: 36px; font-weight: 900; color: #818cf8; margin: 5px 0; }
+    .step-unit { font-size: 14px; color: #a5b4fc; }
+
     input[type="password"], input[type="text"] { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #475569; background: #030712; color: white; font-size: 14px; outline: none; margin-bottom: 10px; }
     .input-group { display: flex; gap: 8px; margin-bottom: 10px; }
     .input-group input { margin-bottom: 0; flex: 1; }
-    .mic-btn { width: 50px; background: #475569; color: white; border: none; border-radius: 12px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .mic-btn { width: 50px; background: #475569; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; }
     .mic-btn.recording { background: #ef4444; animation: pulse 1s infinite; }
-
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    button { width: 100%; padding: 16px; background: #38bdf8; color: #0f172a; border: none; border-radius: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 0 #0284c7; }
+    button { width: 100%; padding: 16px; background: #38bdf8; color: #0f172a; border: none; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 14px; transition: 0.2s; box-shadow: 0 4px 0 #0284c7; }
     button:active { transform: translateY(2px); box-shadow: none; }
     button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
     
@@ -59,34 +65,45 @@
 <div class="app-container">
   <div class="card">
     <input type="password" id="apiKey" placeholder="Gemini API Key を入力" />
-    <div id="statusMsg" class="status-msg">2026 Ready.</div>
+    <div id="statusMsg" class="status-msg">歩いて育てよう！</div>
   </div>
 
   <div class="card" id="setupCard">
-    <h2>📸 本人の写真からアバター生成</h2>
+    <h2>📸 写真からアバター生成</h2>
     <div id="previewArea"><img id="previewImg" alt="元画像" /></div>
     <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="handlePhoto(event)" />
     <button onclick="document.getElementById('photoInput').click()">📸 写真を選択・撮影</button>
-    <button id="analyzeBtn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ 本人に似せてアバター化</button>
+    <button id="analyzeBtn" onclick="startPhotoAnalysis()" style="display:none; margin-top:10px; background:#10b981; box-shadow:0 4px 0 #047857;">✨ この顔でアバターを誕生させる</button>
   </div>
 
   <div class="card avatar-card">
     <div class="avatar-box">
       <img id="avatarImg" src="https://image.pollinations.ai/prompt/cute%20anime%20child%20avatar%20silhouette?width=300&height=300&nologo=true" alt="アバター" />
-      <div class="level-badge" id="levelBadge">Lv.1 (未設定)</div>
+      <div class="level-badge" id="levelBadge">Lv.1 (未誕生)</div>
     </div>
     <div class="char-name" id="charName">アバター未設定</div>
-    <div class="char-desc" id="charDesc">写真から「面影」を抽出して生成します。</div>
+    <div class="char-desc" id="charDesc">写真を読み込むと、特徴を継承した「幼少期アバター」が生成されます。</div>
+    
+    <div class="exp-container">
+      <div class="exp-label"><span>GROWTH EXP</span><span id="expText">0 / 100 EXP</span></div>
+      <div class="exp-bar-bg"><div class="exp-bar-fill" id="expFill"></div></div>
+    </div>
+  </div>
+
+  <div class="card pedometer-card">
+    <h2>👟 今日の歩数</h2>
+    <div class="step-count" id="stepDisplay">0 <span class="step-unit">歩</span></div>
+    <button id="stepReportBtn" onclick="reportStepsToAvatar()" style="background:#6366f1; box-shadow:0 4px 0 #4f46e5; margin-top:6px;" disabled>歩数を報告してEXP獲得！</button>
   </div>
 
   <div class="card">
-    <h2>💬 今日の頑張りを伝える</h2>
+    <h2>💬 話しかける</h2>
     <div class="input-group">
-      <input type="text" id="userInput" placeholder="例: 掃除を頑張ったよ！" />
+      <input type="text" id="userInput" placeholder="例: 今日は天気がいいね！" />
       <button class="mic-btn" id="micBtn" onclick="toggleSpeechRecognition()">🎙️</button>
     </div>
     <button id="sendBtn" onclick="talkToAvatar()" disabled>アバターに伝える</button>
-    <div class="chat-box" id="chatBox">報告を待ってるね！</div>
+    <div class="chat-box" id="chatBox">報告を待ってるよ！</div>
   </div>
 
   <div class="card">
@@ -100,16 +117,21 @@
   let avatarTraits = "";
   let rawPromptBase = "";
   let level = 1;
+  let exp = 0;
+  const maxExpPerLevel = 100;
+  let stepCount = 0;
   let currentReply = "";
   let logs = [];
   let recognition = null;
   let isRecording = false;
+  let lastAccel = { x: 0, y: 0, z: 0 };
+  let isStepThrottled = false;
 
   const apiKeyInput = document.getElementById('apiKey');
 
   // PWA Manifest動的生成
   const stringManifest = JSON.stringify({
-    name: "幼少期アバター", short_name: "アバター", start_url: ".", display: "standalone",
+    name: "歩いて育てるアバター", short_name: "歩数アバター", start_url: ".", display: "standalone",
     background_color: "#0f172a", theme_color: "#0f172a",
     icons: [{ src: "https://image.pollinations.ai/prompt/cute%20anime%20avatar%20icon?width=192&height=192", sizes: "192x192", type: "image/png" }]
   });
@@ -117,11 +139,38 @@
   document.getElementById('manifestLink').setAttribute('href', URL.createObjectURL(blob));
 
   window.onload = () => {
-    apiKeyInput.value = localStorage.getItem('avatar_pro_v4_key') || '';
-    apiKeyInput.addEventListener('change', () => localStorage.setItem('avatar_pro_v4_key', apiKeyInput.value.trim()));
+    apiKeyInput.value = localStorage.getItem('avatar_step_key') || '';
+    apiKeyInput.addEventListener('change', () => localStorage.setItem('avatar_step_key', apiKeyInput.value.trim()));
     initSpeech();
     loadData();
   };
+
+  // 👟 歩数センサーの初期化（iOS/Android両対応）
+  function initPedometer() {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+      DeviceMotionEvent.requestPermission().then(res => {
+        if (res === 'granted') window.addEventListener('devicemotion', handleMotion);
+      }).catch(console.error);
+    } else {
+      window.addEventListener('devicemotion', handleMotion);
+    }
+  }
+
+  function handleMotion(event) {
+    const accel = event.accelerationIncludingGravity;
+    if (!accel) return;
+    const deltaX = Math.abs(accel.x - lastAccel.x);
+    const deltaY = Math.abs(accel.y - lastAccel.y);
+    const deltaZ = Math.abs(accel.z - lastAccel.z);
+    const magnitude = deltaX + deltaY + deltaZ;
+    if (magnitude > 12 && !isStepThrottled) {
+      stepCount++;
+      document.getElementById('stepDisplay').innerHTML = `${stepCount} <span class="step-unit">歩</span>`;
+      isStepThrottled = true;
+      setTimeout(() => { isStepThrottled = false; }, 300);
+    }
+    lastAccel = { x: accel.x, y: accel.y, z: accel.z };
+  }
 
   function initSpeech() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -129,8 +178,7 @@
     recognition = new SpeechRec();
     recognition.lang = 'ja-JP';
     recognition.onresult = (e) => { document.getElementById('userInput').value = e.results[0][0].transcript; stopRecording(); };
-    recognition.onerror = stopRecording;
-    recognition.onend = stopRecording;
+    recognition.onerror = stopRecording; recognition.onend = stopRecording;
   }
 
   function toggleSpeechRecognition() {
@@ -140,20 +188,20 @@
   function stopRecording() { isRecording = false; document.getElementById('micBtn').innerText = '🎙️'; document.getElementById('micBtn').classList.remove('recording'); }
 
   function loadData() {
-    const saved = localStorage.getItem('avatar_state_v4');
+    const saved = localStorage.getItem('avatar_state_step_v1');
     if (!saved) return;
     const data = JSON.parse(saved);
-    level = data.level || 1; avatarTraits = data.traits || ''; rawPromptBase = data.rawPromptBase || ''; logs = data.logs || [];
+    level = data.level || 1; exp = data.exp || 0; avatarTraits = data.traits || ''; rawPromptBase = data.rawPromptBase || ''; logs = data.logs || [];
     document.getElementById('charName').innerText = data.name; document.getElementById('charDesc').innerText = `特徴: ${avatarTraits}`;
-    document.getElementById('avatarImg').src = data.imgUrl; document.getElementById('sendBtn').disabled = false; document.getElementById('setupCard').style.display = 'none';
-    updateLevelBadge(); renderLogs();
+    document.getElementById('avatarImg').src = data.imgUrl; document.getElementById('sendBtn').disabled = false; document.getElementById('stepReportBtn').disabled = false; document.getElementById('setupCard').style.display = 'none';
+    updateLevelAndExp(); renderLogs();
   }
 
   function saveData(imgUrl) {
-    localStorage.setItem('avatar_state_v4', JSON.stringify({ level, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
+    localStorage.setItem('avatar_state_step_v1', JSON.stringify({ level, exp, traits: avatarTraits, rawPromptBase, name: document.getElementById('charName').innerText, imgUrl: imgUrl || document.getElementById('avatarImg').src, logs }));
   }
 
-  function resetData() { if (confirm("データを消去しますか？")) { localStorage.removeItem('avatar_state_v4'); location.reload(); } }
+  function resetData() { if (confirm("リセットしますか？")) { localStorage.removeItem('avatar_state_step_v1'); location.reload(); } }
 
   function handlePhoto(event) {
     const file = event.target.files[0];
@@ -179,10 +227,11 @@
   }
 
   async function startPhotoAnalysis() {
+    initPedometer(); // ここで歩数計の許可を求める
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) return alert("APIキーを入力してください");
     const status = document.getElementById('statusMsg'), analyzeBtn = document.getElementById('analyzeBtn');
-    analyzeBtn.disabled = true; status.textContent = "AIモデルを探査中...";
+    analyzeBtn.disabled = true; status.textContent = "AI分析中...";
 
     try {
       const mRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
@@ -190,16 +239,11 @@
       const models = mData.models.filter(m => m.supportedGenerationMethods.includes("generateContent")).sort((a,b)=>b.name.localeCompare(a.name));
 
       const prompt = `この画像の本人の「面影」を完全に維持した幼少期アバターを作成します。
-【分析指示】性別、髪型（質感）、目の形、メガネの有無、肌の色を詳細に特定してください。
-以下のJSON形式のみで返してください。
-{
-  "name": "特徴を捉えたニックネーム",
-  "traits": "本人の特徴（1文）",
-  "rawPromptBase": "Highly detailed English visual description to RETAIN LIKENESS. Mention specific hair style, eye shape, accessories, and skin tone. (e.g., 'Japanese boy with short spiky black hair, round wire-frame glasses, smiling eyes')"
-}`;
+性別、髪型、メガネ、目の特徴を詳細に分析してください。以下のJSON形式のみで返してください。
+{"name":"ニックネーム","traits":"特徴(1文)","rawPromptBase":"English visual description to RETAIN LIKENESS. Specific hair, eyes, skin tone."}`;
 
       for (const m of models) {
-        status.textContent = `${m.name.split('/').pop()} で分析中...`;
+        status.textContent = `試行中: ${m.name.split('/').pop()}...`;
         try {
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${m.name}:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -213,7 +257,7 @@
             document.getElementById('charName').innerText = result.name;
             document.getElementById('charDesc').innerText = `特徴: ${result.traits}`;
             localStorage.setItem('last_avatar_model', m.name);
-            document.getElementById('sendBtn').disabled = false; document.getElementById('setupCard').style.display = 'none';
+            document.getElementById('sendBtn').disabled = false; document.getElementById('stepReportBtn').disabled = false; document.getElementById('setupCard').style.display = 'none';
             status.textContent = "誕生しました！";
             await updateAvatarVisual(); break;
           }
@@ -225,21 +269,44 @@
 
   async function updateAvatarVisual() {
     let age = level < 3 ? "tiny toddler child" : (level < 6 ? "primary school student" : "mature young adult");
-    const fullPrompt = `${age} version of a person with ${rawPromptBase}, anime style, extreme high quality, soft cinematic lighting, profile icon, looking at viewer, RETAIN IDENTITY`;
+    const fullPrompt = `${age} version of person with ${rawPromptBase}, anime style, RETAIN IDENTITY, looking at viewer`;
     const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=400&height=400&nologo=true&seed=${Math.floor(Math.random()*1000)}`;
-    const avatarEl = document.getElementById('avatarImg');
-    avatarEl.src = imgUrl; avatarEl.onload = () => saveData(imgUrl);
+    document.getElementById('avatarImg').src = imgUrl; 
+    document.getElementById('avatarImg').onload = () => saveData(imgUrl);
   }
 
-  function updateLevelBadge() {
+  function addExp(gained) {
+    exp += gained;
+    const prev = level;
+    while (exp >= maxExpPerLevel) { exp -= maxExpPerLevel; level++; }
+    updateLevelAndExp();
+    if ((prev < 3 && level >= 3) || (prev < 6 && level >= 6)) updateAvatarVisual(); else saveData();
+  }
+
+  function updateLevelAndExp() {
     const stages = level < 3 ? "幼少期" : (level < 6 ? "成長期" : "成人期");
     document.getElementById('levelBadge').innerText = `Lv.${level} (${stages})`;
+    document.getElementById('expText').innerText = `${exp} / ${maxExpPerLevel} EXP`;
+    document.getElementById('expFill').style.width = `${(exp / maxExpPerLevel) * 100}%`;
+  }
+
+  async function reportStepsToAvatar() {
+    if (stepCount === 0) return alert("まだ歩いていないみたいだよ！");
+    const steps = stepCount; stepCount = 0;
+    document.getElementById('stepDisplay').innerHTML = `0 <span class="step-unit">歩</span>`;
+    const gainedExp = Math.min(80, Math.floor(steps / 10) + 20); // 歩数に応じてEXP
+    await processAvatarMessage(`今日はお散歩して ${steps} 歩も歩いたよ！褒めて！`, gainedExp);
   }
 
   async function talkToAvatar() {
-    const apiKey = apiKeyInput.value.trim();
     const text = document.getElementById('userInput').value.trim();
     if (!text) return;
+    document.getElementById('userInput').value = "";
+    await processAvatarMessage(text, 30);
+  }
+
+  async function processAvatarMessage(text, gainedExp) {
+    const apiKey = apiKeyInput.value.trim();
     const chatBox = document.getElementById('chatBox'), sendBtn = document.getElementById('sendBtn');
     sendBtn.disabled = true; chatBox.textContent = "考え中...";
 
@@ -256,12 +323,8 @@
       const data = await res.json();
       currentReply = data.candidates[0].content.parts[0].text;
       chatBox.innerHTML = `${currentReply}<br><button class="voice-btn" onclick="speak()">🔊 聴く</button>`;
-      document.getElementById('userInput').value = "";
-      logs.unshift({ user: text, reply: currentReply });
-      if (logs.length > 20) logs.pop();
-      renderLogs();
-      const prev = level; level++; updateLevelBadge();
-      if ((prev < 3 && level >= 3) || (prev < 6 && level >= 6)) await updateAvatarVisual(); else saveData();
+      logs.unshift({ user: text, reply: currentReply }); if (logs.length > 20) logs.pop();
+      renderLogs(); addExp(gainedExp);
     } catch (e) { chatBox.textContent = "エラー。"; }
     finally { sendBtn.disabled = false; }
   }
